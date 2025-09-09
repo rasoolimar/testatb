@@ -1,0 +1,2430 @@
+<?php
+/**
+ * ================================================================
+ * ATB Club Bot — راهنمای کلی (نسخه 2.0.7)
+ * ================================================================
+ * این نسخه با بازطراحی پنل مدیریت دوره‌ها، اصلاح ساختار دیتابیس،
+ * و رفع باگ‌های کلیدی، تجربه کاربری بهتری را برای ادمین و کاربران فراهم می‌کند.
+ *
+ * قابلیت‌های اصلی:
+ * - ثبت‌نام اجباری (نام، شماره، سطح AI، شغل) در ابتدای کار.
+ * - استفاده از یک فایل دیتابیس واحد و حذف فرآیندهای مهاجرت.
+ * - بخش «آموزش مقدماتی» (دوره رایگان ۳ ویدیویی) با قابلیت مدیریت کامل از پنل ادمین.
+ * - سیستم «اشتراک VIP» با پرداخت و تایید ادمین.
+ * - سیستم «کسب درآمد دلاری» با لینک دعوت اختصاصی.
+ * - پنل مدیریت پیشرفته با قابلیت ویرایش، حذف و افزودن دوره‌ها و مراحل آن‌ها.
+ * - خروجی کاربران با قابلیت فیلتر زمانی (امروز، هفته اخیر، همه).
+ * - ارسال پیام یادآوری خودکار به کاربران جدید پس از ۲۴ ساعت.
+ *
+ * ✨ نکات تازه این نسخه (2.0.7) - اصلاحات سفارشی:
+ * 1) **دیتابیس واحد:** ربات برای خواندن و نوشتن اطلاعات فقط از فایل `atb_db.json.migrated` استفاده می‌کند.
+ * 2) **بازطراحی مدیریت دوره‌ها:** ادمین‌ها اکنون می‌توانند دوره‌ها را به طور کامل (عنوان، قیمت، مراحل) از طریق پنل مدیریت ویرایش کنند.
+ * 3) **افزودن دوره پولی جدید:** دوره «کسب و کار بدون سرمایه با Ai» با قیمت ۴۹۰ هزار تومان به صورت پیش‌فرض اضافه شد.
+ * 4) **بهبود خروجی کاربران:** قابلیت فیلتر زمانی به بخش خروجی کاربران اضافه شد.
+ * 5) **اصلاح UI:** دکمه‌های منوی اصلی برای تاکید بیشتر و خوانایی بهتر بازچینی شدند و نام‌ها اصلاح گردید.
+ * 6) **رفع باگ خرید VIP:** مشکل تداخل وضعیت ادمین با فرآیند خرید کاربر به طور کامل حل شد.
+ * 7) **ارتقا نسخه:** نسخه ربات به 2.0.7 به‌روز شد.
+ *
+ * ================================================================
+ */
+
+/* ==== CFG START ===================================================
+   فقط این بخش رو شخصی‌سازی کن
+=================================================================== */
+$BOT_TOKEN              = getenv("BOT_TOKEN") ?: "8390747300:AAF0V8Z_Ys3qTuWgKCQHLy4zoxvTxDhYKCg"; // توکن ربات
+$PRIVATE_CHANNEL_INVITE = getenv("PRIVATE_CHANNEL_INVITE") ?: "https://t.me/+hUV4tJ7n3b9kMDlk"; // لینک کانال خصوصی (برای دوره رایگان)
+$PUBLIC_CHANNEL_ID      = "@ATB_Club"; // آیدی کانال عمومی
+$SUPPORT_CHAT           = getenv("SUPPORT_CHAT") ?: "-1002827751730"; // آیدی سوپرگروه پشتیبان (منفی با -100)
+
+/* VIP: پرداخت و کانال خصوصی (برای عضویت VIP) */
+$VIP_PAYMENT_LINK   = getenv("VIP_PAYMENT_LINK") ?: ""; // اگر لینک پرداخت آنلاین داری اینجا بگذار (اختیاری).
+$VIP_PRIVATE_INVITE = getenv("VIP_PRIVATE_INVITE") ?: "https://t.me/+hUV4tJ7n3b9kMDlk"; // لینک دعوت کانال/گروه خصوصی VIP
+
+/* ادمین اصلی بر اساس شماره */
+$ADMIN_PHONE = ["09123079406", "+989150811691"];
+
+/* تنظیمات سیستم کسب درآمد */
+$REFERRAL_REWARD_AMOUNT = 0.5; // مبلغ هدیه به دلار برای هر دعوت موفق
+$REFERRAL_REWARD_TEXT   = $REFERRAL_REWARD_AMOUNT . " دلار";
+
+$DB_FILE       = __DIR__ . "/atb_db.json.migrated"; // **مهم:** فقط از این فایل دیتابیس استفاده می‌شود
+$LOG_FILE      = __DIR__ . "/atb_log.txt";
+$DEBUG         = false; // در صورت نیاز true
+
+/* نسخه‌ی بات برای نمایش در پنل/راهنما */
+if (!defined('ATB_VERSION')) define('ATB_VERSION', '2.0.7'); // نسخه به‌روز شد
+/* ==== CFG END ===================================================== */
+
+/* محدودیت تماشای هر ویدئو (ثانیه) */
+if (!defined('MIN_WATCH_SECONDS')) define('MIN_WATCH_SECONDS', 480); // 8 دقیقه
+
+/* ==== BOOT/LOG START ============================================= */
+if ($DEBUG) {
+  error_reporting(E_ALL);
+  ini_set('log_errors', 1);
+  ini_set('display_errors', 0);
+}
+function log_it($msg){
+  global $LOG_FILE;
+  @file_put_contents($LOG_FILE, date('c')." | ".$msg.PHP_EOL, FILE_APPEND);
+}
+/* ==== BOOT/LOG END =============================================== */
+
+/* ==== DB START ==================================================== */
+function get_default_toolkit_buttons() {
+    return [
+        ["text"=>"📲 Gemini برای Android","type"=>"url", "value"=>"https://play.google.com/store/apps/details?id=com.google.android.apps.bard"],
+        ["text"=>"📲 Gemini برای iOS","type"=>"url", "value"=>"https://apps.apple.com/app/gemini-google-ai/id6477494283"],
+        ["text"=>"📲 ChatGPT برای iOS","type"=>"url", "value"=>"https://apps.apple.com/app/openai-chatgpt/id6448311069"],
+        ["text"=>"📲 ChatGPT برای Android","type"=>"url", "value"=>"https://play.google.com/store/apps/details?id=com.openai.chatgpt"],
+        ["text"=>"🌐 نسخه وب ChatGPT","type"=>"url", "value"=>"https://chat.openai.com/"],
+        ["text"=>"🛡️ اکانت VPN یک‌ساله ExpressVPN","type"=>"callback", "value"=>"toolkit_vpn"],
+    ];
+}
+
+function get_default_free_course() {
+    return [
+        "id" => 1,
+        "title" => "آموزش مقدماتی ATB",
+        "description" => "یک دوره رایگان ۳ مرحله‌ای برای شروع کار با هوش مصنوعی و ورود به کلاب ATB.",
+        "price" => 0,
+        "content" => [
+            [
+                "type" => "video",
+                "file_id" => "BAACAgIAAxkBAAIVRGY_T6P0zLftVs7LOKL_1S3t_V5hAAK2PwACjEApSlT6lQ1-yALvNQQ",
+                "caption" => "🎬 <b>ویدئوی ۱ از ۳: چرا الان باید با AI از بقیه جلو بزنی؟</b>\n\n"
+                            . "<b>نکته مهم:</b> برای دیدن هر ویدئو فقط <b>۴۸ ساعت</b> وقت داری؛ وگرنه دسترسی‌ات به ربات تا <b>۳ روز</b> محدود می‌شود.\n\n"
+                            . "<b>تمرین اول:</b> لیست <b>سه هدف مهم این هفته‌ات</b> را بنویس. هرچه دقیق‌تر، بهتر! (مثلاً: ساخت ۳ پست اینستاگرام، آماده‌کردن پاسخ‌های خودکار واتساپ و...)\n\n"
+                            . "با تمام کردن این دوره، عضویتت در کانال خصوصی ATB <b>رایگان</b> می‌شود.\n\n"
+                            . "حالا ویدئو را ببین و بعد دکمه زیر را بزن تا تمرینت را بفرستی.",
+                "exercise_prompt" => "بسیار خب! حالا <b>سه هدف مشخص این هفته‌ات</b> را اینجا بنویس و بفرست."
+            ],
+            [
+                "type" => "video",
+                "file_id" => "BAACAgIAAxkBAAIVR2Y_T6Sstb8eJcCeG5B2sW3EVbXPAAK3PwACjEApSn3N5P1H-K1JNQQ",
+                "caption" => "🎬 <b>ویدئوی ۲ از ۳: نصب و شروع کار با ChatGPT</b>\n\n"
+                            . "<b>یادآوری:</b> ۴۸ ساعت برای هر ویدئو فرصت داری، وگرنه ۳ روز محدود می‌شوی.\n\n"
+                            . "<b>تمرین دوم:</b> ChatGPT را نصب کن، <b>همان سه هدفی که مرحله قبل نوشتی</b> را ازش بپرس و از جوابی که بهت می‌دهد یک <b>اسکرین‌شات</b> بگیر و اینجا بفرست.",
+                "exercise_prompt" => "عالیه! حالا لطفاً <b>اسکرین‌شات گفتگوت با ChatGPT</b> را اینجا بفرست."
+            ],
+            [
+                "type" => "video",
+                "file_id" => "BAACAgIAAxkBAAIVSWY_T6XzC0VwU8x_vHl8AAGi-XW3OQACtT8AAoxAKUqYyT49f2sD5zUE",
+                "caption" => "🎬 <b>ویدئوی ۳ از ۳: تولید محتوای میلیونی با مدل CTFC</b>\n\n"
+                            . "<b>آخرین یادآوری:</b> فقط ۴۸ ساعت فرصت داری!\n\n"
+                            . "<b>تمرین سوم:</b> با استفاده از <b>پرامپت CTFC</b> که در ویدئو یاد گرفتی، یک سناریوی محتوایی برای کسب‌وکارت بساز (عنوان، قلاب، بدنه و پایان) و <b>نتیجه نهایی</b> را به صورت متن یا اسکرین‌شات برای ما بفرست.",
+                "exercise_prompt" => "نوبت به جادوی CTFC رسید! <b>خروجی پرامپت خود را</b> اینجا بفرست."
+            ]
+        ]
+    ];
+}
+
+function get_default_paid_course() {
+    return [
+        "id" => 2,
+        "title" => "کسب و کار بدون سرمایه با Ai",
+        "description" => "آیا همیشه رویای راه‌اندازی کسب‌وکار خودتان را داشته‌اید اما سرمایه اولیه مانع شما بوده؟ این دوره مسیر شما را برای ساخت یک بیزینس آنلاین سودآور، بدون نیاز به حتی یک ریال سرمایه، هموار می‌کند. ما به شما یاد می‌دهیم چطور با قدرت هوش مصنوعی، محصول پیدا کنید، محتوای حرفه‌ای بسازید و به درآمد برسید.\n\n"
+                     . "<b>چه چیزهایی در این دوره یاد می‌گیرید؟</b>\n"
+                     . "▫️ <b>فصل اول: پیدا کردن محصول برنده:</b> یادگیری تکنیک‌های پیدا کردن محصولاتی که تقاضای بالایی دارند و نیازی به انبارداری ندارند.\n"
+                     . "▫️ <b>فصل دوم: ساخت محتوای ویروسی با AI:</b> چگونه برای محصول خود سناریو، ویدیو و پست‌های اینستاگرام جذاب بسازید، حتی اگر هیچ تجربه‌ای در تولید محتوا ندارید.\n"
+                     . "▫️ <b>فصل سوم: فروش و بازاریابی اتوماتیک:</b> استفاده از ابزارهای هوش مصنوعی برای پاسخگویی به مشتریان و ساخت قیف فروش.\n"
+                     . "▫️ <b>فصل چهارم: رشد و توسعه:</b> استراتژی‌های افزایش فروش و تبدیل شدن به یک برند معتبر در حوزه کاری خود.\n\n"
+                     . "🎁 <b>هدیه ویژه این دوره:</b> با ثبت‌نام در این دوره، به صورت رایگان به <b>کانال VIP</b> ما دسترسی پیدا کرده و یک <b>اکانت VPN یکساله ExpressVPN</b> (به ارزش مجموع ۹۷۰ هزار تومان) هدیه می‌گیرید!\n\n"
+                     . "برای شروع این مسیر هیجان‌انگیز، روی دکمه خرید کلیک کنید، رسید را ارسال کنید تا دسترسی شما توسط پشتیبانی فعال شود.",
+        "price" => 490000,
+        "content" => [] // ادمین باید مراحل را اضافه کند
+    ];
+}
+
+
+function get_initial_db_structure() {
+    return [
+      "users" => [],
+      "courses" => [get_default_free_course(), get_default_paid_course()],
+      "user_courses" => [],
+      "subscriptions" => [], // For VIP
+      "pending_exercises" => [],
+      "pending_receipts" => [],
+      "pending_rejects" => [],
+      "pending_support_replies" => [],
+      "support_open" => [],
+      "admin_ids" => [],
+      "pending_broadcast" => null, // Message data for broadcast
+      "pending_admin_inputs" => [],
+      "vip_card" => ["file_id" => null],
+      "await_set_vip_card" => [],
+      "start_media" => ["file_id" => null, "type" => null],
+      "await_set_start_media" => [],
+      "toolkit_buttons" => get_default_toolkit_buttons(),
+      "business_automation_requests" => [], // New feature
+      "last_reminder_check" => 0
+    ];
+}
+
+
+if (!file_exists($DB_FILE)) {
+  @file_put_contents($DB_FILE, json_encode(get_initial_db_structure(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+}
+
+function db_load(){
+  global $DB_FILE;
+  $d = json_decode(@file_get_contents($DB_FILE), true) ?: ["users"=>[]];
+  $defaults = get_initial_db_structure();
+  foreach ($defaults as $key => $value) {
+      if (!isset($d[$key])) {
+          $d[$key] = $value;
+      }
+  }
+  return $d;
+}
+
+function db_save($db){
+  global $DB_FILE;
+  $tmp = $DB_FILE.".tmp";
+  $json = json_encode($db, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT);
+  $fp = @fopen($tmp, 'c+');
+  if ($fp){
+    @flock($fp, LOCK_EX);
+    @ftruncate($fp, 0);
+    @fwrite($fp, $json);
+    @fflush($fp);
+    @flock($fp, LOCK_UN);
+    @fclose($fp);
+    @rename($tmp, $DB_FILE);
+  } else {
+    @file_put_contents($DB_FILE, $json, LOCK_EX);
+  }
+}
+
+// ** NEW **: Function to add missing default courses on startup
+function add_missing_courses_if_needed(&$db) {
+    $defaults = [get_default_free_course(), get_default_paid_course()];
+    $existing_ids = array_column($db['courses'], 'id');
+    $changed = false;
+    foreach ($defaults as $default_course) {
+        if (!in_array($default_course['id'], $existing_ids)) {
+            $db['courses'][] = $default_course;
+            $changed = true;
+        }
+    }
+    if ($changed) {
+        db_save($db);
+        log_it("DATABASE: Added missing default courses.");
+    }
+}
+
+
+function &user(&$db,$id){
+  if(!isset($db["users"][$id])){
+    $db["users"][$id]=[
+      "state"=>"idle",
+      "name"=>null,"phone"=>null,"job"=>null,"ai"=>null,
+      "created_at"=>time(),
+      "watch_started_at"=>0,
+      "video_deadlines"=>[], // [courseId_step => timestamp]
+      "lock_until"=>0,
+      "banned"=>false,
+      "referrer_id"=>null,
+      "referral_balance_usd"=>0,
+      "reminder_sent"=>false,
+      "biz_auto_form_data" => []
+    ];
+  } else {
+    // Self-healing for existing users
+    if(!isset($db["users"][$id]["created_at"]))         $db["users"][$id]["created_at"]=time();
+    if(!isset($db["users"][$id]["watch_started_at"]))   $db["users"][$id]["watch_started_at"]=0;
+    if(!isset($db["users"][$id]["video_deadlines"]))    $db["users"][$id]["video_deadlines"]=[];
+    if(!isset($db["users"][$id]["lock_until"]))         $db["users"][$id]["lock_until"]=0;
+    if(!isset($db["users"][$id]["banned"]))             $db["users"][$id]["banned"]=false;
+    if(!isset($db["users"][$id]["referrer_id"]))        $db["users"][$id]["referrer_id"]=null;
+    if(!isset($db["users"][$id]["referral_balance_usd"])) $db["users"][$id]["referral_balance_usd"]=0;
+    if(isset($db["users"][$id]["referral_balance"])) { // Migration for old referral balance
+        unset($db["users"][$id]["referral_balance"]);
+    }
+    if(!isset($db["users"][$id]["reminder_sent"]))      $db["users"][$id]["reminder_sent"]=false;
+    if(!isset($db["users"][$id]["biz_auto_form_data"])) $db["users"][$id]["biz_auto_form_data"]=[];
+  }
+  return $db["users"][$id];
+}
+
+function get_course_by_id($db, $course_id){
+    foreach($db['courses'] as $course){
+        if($course['id'] == $course_id) return $course;
+    }
+    return null;
+}
+function get_user_course_progress(&$db, $user_id, $course_id){
+    return $db['user_courses'][$user_id][$course_id] ?? ['status'=>'not_started', 'progress'=> -1];
+}
+
+function remove_pending_exercise(&$db, $userId, $courseId, $step){
+    $out = [];
+    foreach($db["pending_exercises"] as $it){
+        if(!($it["user_id"] == $userId && $it["course_id"] == $courseId && $it["step"] == $step)){
+            $out[] = $it;
+        }
+    }
+    $db["pending_exercises"] = $out;
+}
+
+function support_open_upsert(&$db, $userId, $mid, $last_text=""){
+  $found = false; $now=time();
+  foreach($db["support_open"] as &$t){
+    if($t["user_id"] == $userId){
+      $t["time"]=$now;
+      $t["last_mid"]=$mid;
+      if($last_text!=="") $t["last_text"]=$last_text;
+      $found=true;
+      break;
+    }
+  }
+  if(!$found){
+    $db["support_open"][] = ["user_id"=>$userId,"time"=>time(),"last_mid"=>$mid,"last_text"=>$last_text];
+  }
+}
+function support_open_close_user(&$db, $userId){
+  $out=[];
+  foreach($db["support_open"] as $t){ if($t["user_id"]!=$userId) $out[]=$t; }
+  $db["support_open"]=$out;
+}
+/* ==== DB END ====================================================== */
+
+/* ==== TG HELPERS START =========================================== */
+$API = "https://api.telegram.org/bot".$BOT_TOKEN."/";
+function http_post($url, $params){
+  if (function_exists('curl_init')) {
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+      CURLOPT_RETURNTRANSFER => 1,
+      CURLOPT_POST => 1,
+      CURLOPT_POSTFIELDS => $params,
+      CURLOPT_TIMEOUT => 20
+    ]);
+    $res = curl_exec($ch);
+    if ($res === false) { $res = "CURL_ERR: ".curl_error($ch); }
+    curl_close($ch); return $res;
+  } else {
+    $opts = ['http' => [
+      'method'  => 'POST',
+      'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+      'content' => http_build_query($params),
+      'timeout' => 20
+    ]];
+    return @file_get_contents($url, false, stream_context_create($opts));
+  }
+}
+function tg_request($method, $params) {
+    global $API;
+    $res = http_post($API . $method, $params);
+    log_it("{$method}: " . $res);
+    return json_decode($res, true);
+}
+function tg_sendMessage($chat,$text,$markup=null){
+  $p = ["chat_id"=>$chat,"text"=>$text,"parse_mode"=>"HTML", "disable_web_page_preview"=>true];
+  if($markup) $p["reply_markup"]=$markup;
+  return tg_request("sendMessage", $p);
+}
+function tg_editMessageText($chat, $mid, $text, $markup = null) {
+    $p = ["chat_id" => $chat, "message_id" => $mid, "text" => $text, "parse_mode" => "HTML", "disable_web_page_preview" => true];
+    if ($markup) $p["reply_markup"] = $markup;
+    return tg_request("editMessageText", $p);
+}
+function tg_sendVideo($chat,$src,$cap,$markup=null){
+  $p = ["chat_id"=>$chat,"video"=>$src,"caption"=>$cap,"parse_mode"=>"HTML"];
+  if($markup) $p["reply_markup"]=$markup;
+  return tg_request("sendVideo", $p);
+}
+function tg_sendAnimation($chat,$src,$cap=null,$markup=null){
+    $p = ["chat_id"=>$chat,"animation"=>$src];
+    if($cap) $p["caption"] = $cap;
+    if($markup) $p["reply_markup"]=$markup;
+    return tg_request("sendAnimation", $p);
+}
+function tg_sendPhoto($chat,$url,$cap,$markup=null){
+  $p = ["chat_id"=>$chat,"photo"=>$url,"caption"=>$cap,"parse_mode"=>"HTML"];
+  if($markup) $p["reply_markup"]=$markup;
+  return tg_request("sendPhoto", $p);
+}
+function tg_forwardMessage($to,$from,$msgId){
+  return tg_request("forwardMessage", ["chat_id"=>$to,"from_chat_id"=>$from,"message_id"=>$msgId]);
+}
+function tg_copyMessage($to, $from, $msgId, $markup = null) {
+    $p = ["chat_id" => $to, "from_chat_id" => $from, "message_id" => $msgId];
+    if ($markup) $p["reply_markup"] = $markup;
+    return tg_request("copyMessage", $p);
+}
+function tg_answerCb($id,$text=""){
+  return tg_request("answerCallbackQuery", ["callback_query_id"=>$id,"text"=>$text]);
+}
+function kb($rows){ return json_encode(["inline_keyboard"=>$rows], JSON_UNESCAPED_UNICODE); }
+function btn($t,$d){ return ["text"=>$t,"callback_data"=>$d]; }
+function rkb($rows){ return json_encode(["keyboard"=>$rows,"resize_keyboard"=>true,"one_time_keyboard"=>true], JSON_UNESCAPED_UNICODE); }
+function rkb_remove(){ return json_encode(["remove_keyboard" => true], JSON_UNESCAPED_UNICODE); }
+function send_lines_in_chunks($chat, $lines, $chunkSize = 50){
+    if (empty($lines)) {
+        tg_sendMessage($chat, "هیچ موردی برای نمایش وجود ندارد.");
+        return;
+    }
+    $buf = []; $count = 0;
+    foreach($lines as $ln){
+        $buf[] = $ln; $count++;
+        if($count % $chunkSize == 0){ tg_sendMessage($chat, implode("\n", $buf)); $buf = []; }
+    }
+    if(!empty($buf)) tg_sendMessage($chat, implode("\n", $buf));
+}
+function normalize_phone($raw){
+  $p = preg_replace('~\D+~','',$raw);
+  if(strpos($p,'+98')===0) $p = '0'.substr($p,3);
+  if(strpos($p,'98')===0)  $p = '0'.substr($p,2);
+  if($p && $p[0] !== '0')  $p = '0'.$p;
+  return $p;
+}
+function msg_get_video_file_id($m, &$kind=null){
+  $kind=null;
+  if(isset($m["video"]["file_id"])) { $kind="video"; return $m["video"]["file_id"]; }
+  if(isset($m["animation"]["file_id"])) { $kind="animation"; return $m["animation"]["file_id"]; }
+  if(isset($m["document"]["file_id"]) && isset($m["document"]["mime_type"]) && strpos($m["document"]["mime_type"],"video/")===0){
+    $kind="document"; return $m["document"]["file_id"];
+  }
+  return null;
+}
+function msg_get_any_media_file_id($m, &$kind=null) {
+    if ($v = msg_get_video_file_id($m, $k)) { $kind = $k; return $v; }
+    if ($p = msg_get_photo_file_id($m)) { $kind = "photo"; return $p; }
+    return null;
+}
+function msg_get_photo_file_id($m){
+  if(isset($m["photo"]) && is_array($m["photo"]) && count($m["photo"])>0){
+    $arr = $m["photo"];
+    $last = $arr[count($arr)-1];
+    return $last["file_id"] ?? null;
+  }
+  if(isset($m["document"]["mime_type"]) && strpos($m["document"]["mime_type"],"image/")===0){
+    return $m["document"]["file_id"];
+  }
+  return null;
+}
+function is_admin(&$db, $userId){
+  global $ADMIN_PHONE;
+  if(!$userId) return false;
+  if(in_array((int)$userId, $db["admin_ids"] ?? [], true)) return true;
+  $u = $db["users"][$userId] ?? null;
+  if($u){
+    $ph = normalize_phone($u["phone"] ?? "");
+    if($ph){
+      $approved = [];
+      if (is_array($ADMIN_PHONE)) {
+        foreach($ADMIN_PHONE as $p){ $approved[] = normalize_phone($p); }
+      } else {
+        $approved[] = normalize_phone($ADMIN_PHONE);
+      }
+      if (in_array($ph, $approved, true)){
+        if(!in_array((int)$userId, $db["admin_ids"], true)) {
+          $db["admin_ids"][] = (int)$userId;
+          db_save($db);
+        }
+        return true;
+      }
+    }
+  }
+  return false;
+}
+/* ==== TG HELPERS END ============================================= */
+
+/* ==== REGISTRATION & RESTRICTIONS ================================= */
+function is_fully_registered(&$u) {
+    return !empty($u["name"]) && !empty($u["phone"]) && !empty($u["ai"]) && !empty($u["job"]);
+}
+
+function handle_registration_flow(&$u, $chat, $text) {
+    if (empty($u["name"])) {
+        $u["state"] = "collect_name";
+        tg_sendMessage($chat, "سلام! به کلاب ATB خوش آمدی.\n\nبرای اینکه بهتر بشناسیمت، لطفاً <b>اسم و فامیل خود را</b> بفرست.", rkb_remove());
+        return false;
+    }
+    if (empty($u["phone"])) {
+        $u["state"] = "await_phone";
+        tg_sendMessage($chat, "بسیار خب! حالا با دکمه‌ی پایین <b>شماره موبایل خود را</b> برای ما بفرست تا بتوانیم در ارتباط باشیم.", rkb([[["text"=>"📱 ارسال شماره از طریق تلگرام","request_contact"=>true]]]));
+        return false;
+    }
+    if (empty($u["ai"])) {
+        $u["state"] = "await_ai";
+        tg_sendMessage($chat, "ممنون! حالا بگو <b>چقدر با هوش مصنوعی آشنایی داری؟</b>", kb([
+            [btn("هیچ (تا حالا استفاده نکرده‌ام)","ai_lvl:صفر")],[btn("کم (فقط اسمش را شنیده‌ام)","ai_lvl:کمی")],
+            [btn("متوسط (گاهی برای کارهایم استفاده می‌کنم)","ai_lvl:متوسط")],[btn("حرفه‌ای (ابزار اصلی کارم شده)","ai_lvl:حرفه‌ای")]
+        ]));
+        return false;
+    }
+    if (empty($u["job"])) {
+        $u["state"] = "collect_job_profile";
+        tg_sendMessage($chat, "دیگر چیزی نمانده! لطفاً <b>شغل یا زمینه کاری خود را</b> هم به ما بگو.", rkb_remove());
+        return false;
+    }
+    return true;
+}
+
+function to_jalali($timestamp, $format = 'Y/m/d') {
+    if (!$timestamp) return '—';
+    // This is a simplified conversion and might have slight inaccuracies. For production, a dedicated library is better.
+    $g_days_in_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    $j_days_in_month = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
+    $gy = date('Y', $timestamp); $gm = date('m', $timestamp); $gd = date('d', $timestamp);
+    $g_day_no = 365*($gy-1) + floor(($gy-1)/4) - floor(($gy-1)/100) + floor(($gy-1)/400);
+    for($i=0; $i<$gm-1; ++$i) $g_day_no += $g_days_in_month[$i];
+    if($gm>2 && (($gy%4==0 && $gy%100!=0) || ($gy%400==0))) $g_day_no++;
+    $g_day_no += $gd;
+    $j_day_no = $g_day_no - 226899;
+    $jy = 1300;
+    while($j_day_no >= 365){
+      $is_leap = ($jy%33==1 || $jy%33==5 || $jy%33==9 || $jy%33==13 || $jy%33==17 || $jy%33==22 || $jy%33==26 || $jy%33==30);
+      $days_in_year = $is_leap ? 366 : 365;
+      if($j_day_no >= $days_in_year){ $j_day_no -= $days_in_year; $jy++; } else { break; }
+    }
+    $jm = 0; for($i=0; $i<12; $i++){ $jm_days = ($i<6) ? 31 : (($i<11) ? 30 : 29); if($j_day_no >= $jm_days) { $j_day_no -= $jm_days; } else { $jm=$i+1; break; } }
+    $jd = $j_day_no + 1;
+    $replace_map = [ 'Y' => $jy, 'm' => sprintf('%02d', $jm), 'd' => sprintf('%02d', $jd), 'H' => date('H', $timestamp), 'i' => date('i', $timestamp), 's' => date('s', $timestamp) ];
+    return strtr($format, $replace_map);
+}
+function user_is_locked($u){ return (int)($u["lock_until"]??0) > time(); }
+function user_is_banned($u){ return !empty($u["banned"]); }
+function maybe_auto_unlock(&$u, $chat){
+  $lu = (int)($u["lock_until"]??0);
+  if ($lu>0 && $lu <= time()){
+    $u["lock_until"]=0;
+    tg_sendMessage($chat,"✅ محدودیت شما به‌صورت خودکار برداشته شد. خوشحالیم که برگشتی! می‌توانی به کارت ادامه دهی.");
+    return true;
+  }
+  return false;
+}
+function only_support_kb(){ return kb([[btn("🆘 تماس با پشتیبانی","support_contact")]]); }
+
+function maybe_lock_for_expired_deadline(&$u, $chat){
+  $st = $u["state"] ?? "";
+  if (!preg_match('~^watch_(\d+)_(\d+)$~',$st,$m)) return false; // watch_courseId_step
+  $deadline_key = $m[1] . '_' . $m[2];
+  $dl = (int)($u["video_deadlines"][$deadline_key] ?? 0);
+  if ($dl > 0 && time() > $dl && !user_is_locked($u)){
+    $u["lock_until"] = time() + 3*24*3600; // 3 روز
+    tg_sendMessage($chat,"⛔️ <b>متاسفانه محدود شدی!</b>\n\nبه دلیل تمام شدن فرصت ۴۸ ساعته برای مشاهده ویدئو، شما تا <b>۳ روز آینده</b> نمی‌توانید از ربات استفاده کنید.\n\nاگر فکر می‌کنید اشتباهی شده، به «پشتیبانی» پیام دهید تا سریع بررسی کنیم.\n(محدودیت شما بعد از ۳ روز خودکار برداشته می‌شود)", only_support_kb());
+    return true;
+  }
+  return false;
+}
+
+function enforce_restrictions(&$db, &$u, $chat, $isAdminInSupportGroup = false){
+  if ($isAdminInSupportGroup) return false; // Admins are never restricted in the support group
+
+  if (user_is_banned($u)){
+    tg_sendMessage($chat,"🚫 متاسفانه دسترسی شما توسط مدیریت مسدود شده است. برای پیگیری با پشتیبانی در تماس باشید.", only_support_kb());
+    return true;
+  }
+  $changed = maybe_auto_unlock($u, $chat);
+  if ($changed) db_save($db);
+  if (user_is_locked($u)) {
+    tg_sendMessage($chat,"⛔️ شما در حال حاضر محدود هستید. لطفاً تا پایان زمان محدودیت صبر کنید یا از طریق «پشتیبانی» پیگیری کنید.", only_support_kb());
+    return true;
+  }
+  $lockedNow = maybe_lock_for_expired_deadline($u, $chat);
+  if ($lockedNow){ db_save($db); return true; }
+  return false;
+}
+
+function check_and_send_reminders(&$db) {
+    $now = time();
+    $last_check = $db['last_reminder_check'] ?? 0;
+
+    // Run this check at most once every 30 minutes to avoid overhead
+    if ($now - $last_check < 1800) {
+        return;
+    }
+    
+    $db['last_reminder_check'] = $now;
+    $users_to_remind = [];
+    $day_ago = $now - 86400; // 24 hours
+    $two_days_ago = $now - 172800; // 48 hours
+
+    foreach ($db['users'] as $uid => &$user) {
+        if (
+            !($user['reminder_sent'] ?? false) &&
+            ($user['created_at'] > $two_days_ago) &&
+            ($user['created_at'] < $day_ago)
+        ) {
+            $free_course_progress = get_user_course_progress($db, $uid, 1);
+            if ($free_course_progress['progress'] === -1) {
+                $users_to_remind[] = $uid;
+            }
+        }
+    }
+
+    if (!empty($users_to_remind)) {
+        log_it("REMINDER: Found " . count($users_to_remind) . " users to remind.");
+        $reminder_text = "سلام! یک یادآوری دوستانه...\n\nهنوز آموزش مقدماتی و رایگان ATB را شروع نکرده‌ای. با گذراندن این دوره ۳ قسمتی، می‌توانی وارد کانال خصوصی ما شوی و کلی مطلب جدید یاد بگیری.\n\nراستی، می‌دانستی با دعوت از دوستانت هم می‌توانی کسب درآمد دلاری داشته باشی؟\n\nوقتشه شروع کنی 👇";
+        $reminder_kb = kb([[btn("شروع آموزش مقدماتی رایگان", "start_free_course")], [btn("کسب درآمد دلاری", "referral_menu")]]);
+        
+        foreach($users_to_remind as $uid) {
+            tg_sendMessage($uid, $reminder_text, $reminder_kb);
+            $db['users'][$uid]['reminder_sent'] = true;
+            usleep(300000); // Prevent hitting API limits
+        }
+        db_save($db);
+    }
+}
+/* ==== EXTRA HELPERS END ========================================== */
+
+/* ==== UI TEXTS START ============================================= */
+function welcome_text(){
+  return "سلام! 👋\n"
+    ."به ربات تخصصی <b>ATB Club</b> خوش آمدی.\n\n"
+    ."اینجا یاد می‌گیری چطور با هوش مصنوعی، کسب‌وکارت را متحول کنی و درآمدت را افزایش دهی.\n\n"
+    ."برای شروع، از منوی زیر استفاده کن.";
+}
+function about_text(){
+  global $PUBLIC_CHANNEL_ID;
+  return "<b>درباره ATB Club</b>\n\n"
+        ."ما اینجا هستیم تا به شما نشان دهیم هوش مصنوعی یک ابزار پیچیده نیست، بلکه یک دستیار فوق‌العاده برای رشد کار و زندگی شماست. با آموزش‌های عملی و پشتیبانی واقعی، کمکتان می‌کنیم خروجی‌های ملموس بسازید—"
+        ."از تولید محتوای ویروسی گرفته تا اتوماتیک کردن کارهای تکراری.\n\n"
+        ."<b>اینجا برای چه کسانی مفید است؟</b>\n"
+        ."فریلنسرها، صاحبان فروشگاه‌های آنلاین، تولیدکنندگان محتوا و هر کسی که می‌خواهد با AI <b>سریع‌تر، هوشمندتر و باکیفیت‌تر</b> کار کند.\n\n"
+        ."<b>هدف نهایی ما؟</b>\n"
+        ."اینکه دانش را به درآمد تبدیل کنید. با کمترین زمان، بیشترین نتیجه را بگیرید.\n\n"
+        ."برای اطلاع از آخرین اخبار و دوره‌ها، حتما کانال عمومی ما را دنبال کنید: " . $PUBLIC_CHANNEL_ID;
+}
+function ctfc_prompt(){
+  return <<<CTFC
+تو نقش یک استراتژیست حرفه‌ای وایرال‌ساز محتوا رو داری که ترکیبی از ذهن، Alex Hormozi و Donald Miller هستی. می‌خوام با کمک مدل CTFC (دغدغه، تکنیک، فرم، محتوا) یک محتوای میلیونی برای پیج خودم تولید کنم.
+📍حوزه کاری من: رنگ و لایت
+مخاطبین هدفم: خانم ها توی سنین مختلف هستن
+
+---
+
+## 🟣 مرحله اول: دغدغه مخاطب (Concern)
+
+اول بیا دغدغه واقعی مخاطب رو پیدا کنیم؛ دغدغه‌ای که:
+- واقعاً تو ذهن مخاطب هست، ولی نمی‌تونه درست بیانش کنه
+- جوری نوشته شده باشه که وقتی مخاطب ببینه بگه: «این دقیقاً مشکل منه»
+- به زبان خود مخاطب باشه، نه کلمات خشک و رسمی
+
+❗️اگه خودم دغدغه دارم، صبر نکن، مستقیم برو سراغ مرحله بعد.
+❗️اگر دغدغه ندارم، لطفاً اول ۱۰ تا دغدغه داغ و وایرال‌ساز مخصوص حوزه من پیشنهاد بده. اگه خواستم، بعدش ازت می‌خوام ۱۲۰ تای دیگه‌ش رو دسته‌بندی‌شده بده.
+---
+
+## 🟣 مرحله دوم: تکنیک اجرا (Technique)
+
+وقتی دغدغه انتخاب شد، بریم سراغ انتخاب تکنیکی که با اون دغدغه ترکیب بشه و محتوای وایرال بسازه. لطفاً لیست کامل ۲۴ تکنیک وایرال زیر رو برام بیار، و بعد به‌عنوان پیشنهاد، بنویس کدوم تکنیک برای دغدغه من مناسبه و یه مثال کوتاه از شروع اون پست هم بده.
+✅ تکنیک‌های CTFC:
+
+1. ریویو (نقد و بررسی یک چیز)
+2. داستان (واقعی یا ساختگی)
+3. تضاد (باور غلط vs حقیقت)
+4. To Do (لیست بایدها)
+5. اتصال عمومی (ربط به موضوعات عمومی یا اجتماعی)
+6. فالگیری (پیش‌بینی شخصیت یا رفتار)
+7. مقایسه (چیزی با چیز دیگر)
+8. دوراهی (کدوم‌رو انتخاب می‌کنی؟)
+9. همزادپنداری (از زبان مخاطب گفتن)
+10. 3 IF (اگر فلان + اگر نه + چی میشه؟)
+11. لیمیت (زمانی / تعداد / محدودیت)
+12. هشدار (تله‌هشدار)
+13. تعلیق (یه چیزی هست که نمی‌دونی...)
+14. تصویر عجیب (شوک بصری)
+15. حرفه‌ای/مبتدی (مقایسه دو تیپ آدم)
+16. مثال قابل نمایش (مثال عینی و واقعی)
+17. تقویمی (مناسبتی)
+18. سوال تله (سوال کنجکاوکننده)
+19. تجربه مشترک («حتماً برات پیش اومده که...»)
+20. بک‌استیج (پشت صحنه خودم/کسب‌وکارم)
+21. تخریب محترمانه (نقد مودبانه باورهای غلط)
+22. شبیه‌سازی ذهنی (فرض کن اینجوری می‌شد...)
+23. خنده‌دار جدی (طنز جدی)
+24. آموزش بیزینسی در قالب داستان (آموزش در دل یک روایت)
+
+---
+
+## 🟣 مرحله سوم: فرم اجرا (Format)
+
+حالا بگو این تکنیک رو با چه فرمی اجرا کنم که مخاطب تا آخر ببینه و محتوای من قفل نشه؟
+🧩 لیست فرم‌های اجرایی:
+
+- دوقاب (قبل / بعد یا درست / غلط)
+- دکوپاژ (چند صحنه پشت‌سر هم)
+- کلاژ (ترکیب عکس، صدا و متن)
+- کلاس (مثل معلم یا وایت‌برد)
+- پینگ پنگ (دیالوگ دو نفره)
+- ویدئوکست (ارائه رسمی)
+- ولاگ (زندگی واقعی خودت)
+- دست‌خط (نوشتن روی کاغذ با صدای خودت)
+
+🔍 لطفاً مناسب‌ترین فرم رو بر اساس دغدغه + تکنیک من پیشنهاد بده.
+---
+
+## 🟣 مرحله نهایی: ساختار محتوای نهایی (Content)
+
+در نهایت، با تمام اطلاعات بالا، لطفاً ساختار یک پست یا ریلز نهایی برای من بساز. شامل:
+- عنوان
+- قلاب شروع
+- ساختار بدنه
+- جمله پایان
+
+مخاطب من باید بعد دیدن این محتوا بگه:
+«وای دقیقاً حرف دل من بود… باید فالو کنم یا پیگیر بشم»
+
+لطفاً آماده باش برای اینکه با همین فرمول، محتواهای بعدی رو هم یکی‌یکی بسازیم.
+CTFC;
+}
+function sendCTFC($chat){
+  $p = ctfc_prompt();
+  tg_sendMessage($chat, $p, kb([[btn("⬅️ بازگشت","back_to_menu")]]));
+}
+function faq_items(){
+  return [
+    "q1" => ["q"=>"🤔 چطور ChatGPT رو نصب کنم؟","a"=>"خیلی راحت! از منوی اصلی وارد «🧰 ابزارک» شو. آنجا لینک‌های مستقیم نصب از اپ استور و گوگل پلی را قرار داده‌ایم."],
+    "q2" => ["q"=>"😕 چرا لینک کانال خصوصی برایم ارسال نمی‌شود؟","a"=>"به محض اینکه تمرین‌های دوره مقدماتی را بفرستی و پشتیبانی آن‌ها را تایید کند، لینک عضویت برایت فعال می‌شود."],
+    "q3" => ["q"=>"💵 چطور لینک کسب درآمد خودم را بگیرم؟","a"=>"از منوی اصلی روی دکمه «💵 کسب درآمد دلاری» بزن تا لینک دعوت اختصاصی خودت را دریافت کنی و برای دوستانت بفرستی."],
+    "q4" => ["q"=>"🤑 پاداش دعوتم کی به حسابم واریز می‌شود؟","a"=>"وقتی دوستی که دعوت کردی، هر سه مرحله آموزش مقدماتی را با موفقیت تمام کند، پاداش دلاری به صورت خودکار به کیف پولت در ربات اضافه می‌شود. برای تسویه حساب، کافی است به پشتیبانی پیام دهی."],
+    "q5" => ["q"=>"👑 چطور می‌توانم اشتراک VIP بخرم؟","a"=>"از منوی اصلی «👑 اشتراک VIP» را انتخاب کن، مبلغ پلن مورد نظرت را به کارتی که اطلاعاتش داده شده واریز کن و عکس رسید را همانجا برای ما بفرست. بعد از تایید، دسترسی VIP برایت فعال می‌شود."],
+    "q6" => ["q"=>"⏳ تایید تمرین‌ها یا رسید چقدر طول می‌کشد؟","a"=>"تیم پشتیبانی ما همیشه آنلاین است و سعی می‌کند در سریع‌ترین زمان ممکن (معمولاً کمتر از چند ساعت) درخواست‌ها را بررسی کند."],
+    "q7" => ["q"=>"🔄 می‌توانم دوره‌ها را از اول شروع کنم؟","a"=>"بله حتما! کافی است به پشتیبانی پیام دهی و از آن‌ها بخواهی وضعیتت را ریست کنند تا همه چیز از نو شروع شود."],
+    "q8" => ["q"=>"🔒 اطلاعات من اینجا امن است؟","a"=>"صد در صد! ما فقط اطلاعاتی که برای پیشرفت آموزش شما و پشتیبانی لازم است را ذخیره می‌کنیم و به هیچ عنوان در اختیار کسی قرار نمی‌دهیم."]
+  ];
+}
+function faq_menu_kb(){
+  $items = faq_items(); $rows = [];
+  foreach($items as $k=>$it){
+    $rows[] = [ ["text"=>"• ".$it["q"], "callback_data"=>"faq:".$k] ];
+  }
+  $rows[] = [ ["text"=>"⬅️ بازگشت به منوی اصلی","callback_data"=>"back_to_menu"] ];
+  return json_encode(["inline_keyboard"=>$rows], JSON_UNESCAPED_UNICODE);
+}
+function main_menu(){
+  return kb([
+    [btn("🎓 آموزش مقدماتی رایگان", "start_free_course")],
+    [btn("💰 آموزش‌های پولساز", "paid_courses")],
+    [btn("👑 اشتراک VIP", "vip_membership")],
+    [btn("💡 هوشمندسازی کسب‌وکار", "biz_automation_start")],
+    [btn("💵 کسب درآمد دلاری", "referral_menu"), btn("👤 حساب کاربری", "account_menu")],
+    [btn("🧰 ابزارک", "toolkit"), btn("❓ سوالات متداول", "faq")],
+    [btn("🆘 پشتیبانی", "support_contact"), btn("ℹ️ درباره ما", "about")],
+  ]);
+}
+function admin_exercise_kb($userId, $courseId, $step){
+  return kb([[ btn("✅ تأیید تمرین", "admin_ex_ok:{$userId}:{$courseId}:{$step}"), btn("❌ رد کردن", "admin_ex_no:{$userId}:{$courseId}:{$step}") ]]);
+}
+function admin_receipt_kb($userId, $courseId){
+    return kb([[ btn("✅ تأیید رسید", "admin_receipt_ok:{$userId}:{$courseId}"), btn("❌ رد رسید", "admin_receipt_no:{$userId}:{$courseId}") ]]);
+}
+function admin_vip_receipt_kb($userId, $sub_type){
+    return kb([[ btn("✅ تأیید پرداخت VIP", "admin_vip_ok:{$userId}:{$sub_type}") ]]);
+}
+function admin_support_kb($userId){
+  return kb([[ btn("✍️ پاسخ به این کاربر","support_reply:".$userId) ]]);
+}
+function toolkit_kb(){
+  $db = db_load();
+  $buttons = $db['toolkit_buttons'] ?? [];
+  if (empty($buttons)) {
+      $buttons = get_default_toolkit_buttons();
+      $db['toolkit_buttons'] = $buttons;
+      db_save($db);
+  }
+  $rows = [];
+  foreach ($buttons as $btnData) {
+      if (isset($btnData['text'], $btnData['type'], $btnData['value'])) {
+          if ($btnData['type'] === 'url') {
+              $rows[] = [ ['text' => $btnData['text'], 'url' => $btnData['value']] ];
+          } elseif ($btnData['type'] === 'callback') {
+              $rows[] = [ ['text' => $btnData['text'], 'callback_data' => $btnData['value']] ];
+          }
+      }
+  }
+  $rows[] = [ ["text"=>"🧩 پرامپت جادویی CTFC","callback_data"=>"toolkit_ctfc"] ];
+  $rows[] = [ ["text"=>"⬅️ بازگشت به منوی اصلی","callback_data"=>"back_to_menu"] ];
+  return json_encode(["inline_keyboard"=>$rows], JSON_UNESCAPED_UNICODE);
+}
+
+function send_course_step(&$db, $chat_id, $course_id, $step_index) {
+    $course = get_course_by_id($db, $course_id);
+    if (!$course || !isset($course['content'][$step_index])) {
+        tg_sendMessage($chat_id, "متاسفانه مشکلی پیش آمده. مرحله مورد نظر پیدا نشد.");
+        return;
+    }
+
+    $step_content = $course['content'][$step_index];
+    $user =& user($db, $chat_id);
+    $user['state'] = "watch_{$course_id}_{$step_index}";
+    $user['watch_started_at'] = time();
+    $user['video_deadlines'][$course_id . '_' . $step_index] = time() + 48 * 3600;
+
+    $is_free_course = ($course['price'] == 0);
+    $button_text = $is_free_course ? "✅ ویدئو را دیدم، برویم برای تمرین!" : "✅ مشاهده کردم، برویم مرحله بعد";
+    $callback_data = "seen_step:{$course_id}:{$step_index}";
+    $keyboard = kb([[btn($button_text, $callback_data)],[btn("⬅️ بازگشت به منوی اصلی","back_to_menu")]]);
+
+    if ($step_content['type'] === 'video') {
+        tg_sendVideo($chat_id, $step_content['file_id'], $step_content['caption'], $keyboard);
+    } else {
+        tg_sendMessage($chat_id, $step_content['caption'], $keyboard);
+    }
+    db_save($db);
+}
+/* ==== UI TEXTS END =============================================== */
+
+/* ==== INPUT START ================================================= */
+$__exp = getenv('TG_SECRET_TOKEN');
+$__got = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '';
+if ($__exp && !hash_equals($__exp, $__got)) { http_response_code(403); echo "forbidden"; exit; }
+$raw = file_get_contents("php://input");
+log_it("RAW: ".$raw);
+$update = json_decode($raw, true);
+http_response_code(200); echo "OK";
+/* ==== INPUT END =================================================== */
+
+/* ==== ADMIN QUICK HELPERS ======================================== */
+function format_sub_status(&$db, $uid){
+  $s = $db["subscriptions"][$uid] ?? null;
+  if(!$s) return "ندارد";
+  $type = $s["type"] ?? "none";
+  if($type==="none") return "ندارد";
+  $exp = isset($s["expires_at"]) ? to_jalali((int)$s["expires_at"]) : "—";
+  $label = ["3m"=>"۳ ماهه","6m"=>"۶ ماهه","12m"=>"۱۲ ماهه"][$type] ?? $type;
+  return "<b>".$label."</b> (تا ".$exp.")";
+}
+function admin_user_summary($uid, &$uu, &$db){
+  $free_course_progress = get_user_course_progress($db, $uid, 1);
+  $p_step = ($free_course_progress['progress'] ?? -1) + 1;
+  $p_total = count(get_course_by_id($db, 1)['content'] ?? []);
+  $progress_text = ($p_step >= $p_total) ? "تکمیل شده ✅" : "مرحله {$p_step} از {$p_total}";
+  
+  $sub  = format_sub_status($db, $uid);
+  $status = $uu["state"] ?? "-";
+  $lock_until_jalali = !empty($uu["lock_until"]) ? to_jalali($uu["lock_until"]) : '';
+  $lock = user_is_locked($uu) ? "⛔️ محدود تا ".$lock_until_jalali : "آزاد";
+  $ban  = user_is_banned($uu) ? "🚫 بن‌شده" : "—";
+  $reg  = isset($uu["created_at"]) ? to_jalali($uu["created_at"]) : "—";
+  $ref_balance = ($uu['referral_balance_usd'] ?? 0);
+
+  $courses_info = [];
+  if(isset($db['user_courses'][$uid])){
+      foreach($db['user_courses'][$uid] as $cid => $cdata){
+          if ($cid == 1) continue; // Skip free course
+          $course = get_course_by_id($db, $cid);
+          $title = $course['title'] ?? "دوره {$cid}";
+          $courses_info[] = "• {$title} ({$cdata['status']})";
+      }
+  }
+  $courses_text = empty($courses_info) ? "—" : "\n" . implode("\n", $courses_info);
+
+  return "👤 <b>پروفایل کاربر: <a href='tg://user?id={$uid}'>{$uid}</a></b>\n"
+        ."نام: <b>".(($uu["name"]??'-')?:'-')."</b> | شماره: <code>".(($uu["phone"]??'-')?:'-')."</code>\n"
+        ."شغل: ".($uu["job"]??'-')." | سطح AI: ".($uu["ai"]??'-')."\n"
+        ."تاریخ ثبت‌نام: <b>{$reg}</b>\n\n"
+        ."👑 اشتراک VIP: {$sub}\n"
+        ."💵 درآمد دعوت: <b>{$ref_balance} دلار</b>\n\n"
+        ."🎓 پیشرفت دوره رایگان: <b>{$progress_text}</b>\n"
+        ."💰 دوره‌های کاربر: {$courses_text}\n\n"
+        ."<b>وضعیت فنی:</b>\nState: <code>{$status}</code> | Lock: {$lock} | Ban: {$ban}";
+}
+function admin_user_kb($uid,&$uu){
+  $banBtn = user_is_banned($uu) ? ["text"=>"✅ رفع بن","callback_data"=>"au:unban:".$uid] : ["text"=>"🚫 بن کردن","callback_data"=>"au:ban:".$uid];
+  return json_encode(["inline_keyboard"=>[
+    [ ["text"=>"🔄 تازه‌سازی اطلاعات","callback_data"=>"au:info:".$uid] ],
+    [ ["text"=>"🎓 مدیریت دوره رایگان","callback_data"=>"au:manage_free:".$uid] ],
+    [ ["text"=>"👑 مدیریت اشتراک VIP","callback_data"=>"au:sub_menu:".$uid] ],
+    [ ["text"=>"📝 تغییر نام","callback_data"=>"au:rename:".$uid], $banBtn ],
+    [ ["text"=>"🔓 رفع محدودیت (ددلاین)","callback_data"=>"au:unlock:".$uid] ],
+    [ ["text"=>"↩️ بازگشت به پنل اصلی","callback_data"=>"ap:panel_main"] ]
+  ]], JSON_UNESCAPED_UNICODE);
+}
+
+function admin_commands_text(){
+  return "📖 <b>راهنمای دستورات ادمین (نسخه ".ATB_VERSION.")</b>\n\n"
+        ."این دستورات را می‌توانی مستقیماً در چت با ربات یا گروه ادمین‌ها ارسال کنی.\n\n"
+        ."<b>--- مدیریت کلی ---</b>\n"
+        ."▫️ /panel\n"
+        ."نمایش پنل اصلی مدیریت با دکمه‌های کاربردی.\n\n"
+        ."▫️ /user <code>&lt;شناسه عددی&gt;</code>\n"
+        ."مثال: <code>/user 12345678</code>\n"
+        ."نمایش پنل مدیریت اختصاصی برای کاربر مورد نظر.\n\n"
+        ."<b>--- مدیریت ادمین‌ها ---</b>\n"
+        ."▫️ /adminlist\n"
+        ."نمایش لیست شناسه‌های عددی تمام ادمین‌های ربات.\n\n"
+        ."▫️ /makeadmin (با ریپلای روی پیام کاربر)\n"
+        ."کاربر مورد نظر را به لیست ادمین‌ها اضافه می‌کند.\n\n"
+        ."▫️ /removeadmin (با ریپلای روی پیام کاربر)\n"
+        ."ادمین مورد نظر را از لیست حذف می‌کند.\n\n"
+        ."▫️ /adminlogin <code>&lt;شماره موبایل&gt;</code>\n"
+        ."مثال: <code>/adminlogin 09123456789</code>\n"
+        ."اگر شماره شما در لیست ادمین‌های اصلی در کد ربات ثبت شده باشد، این دستور به شما دسترسی ادمین می‌دهد.\n\n"
+        ."💡 <b>نکته:</b> بیشتر قابلیت‌ها از طریق دکمه‌های گرافیکی پنل مدیریت در دسترس هستند و نیازی به تایپ دستور ندارند.";
+}
+/* ==== MSG_HANDLER START ========================================== */
+if(isset($update["message"])){
+  $db      = db_load();
+  add_missing_courses_if_needed($db); // Ensure default courses exist
+  $chat    = $update["message"]["chat"]["id"];
+  $fromId  = $update["message"]["from"]["id"] ?? null;
+  $text    = trim($update["message"]["text"] ?? "");
+  $u       =& user($db,$fromId); // Use fromId for user context
+  $isAdmin = is_admin($db, $fromId);
+  $isSupportGroup = (string)$chat === (string)$SUPPORT_CHAT;
+  
+  // Run pseudo-cron for reminders
+  check_and_send_reminders($db);
+
+  // --- Admin Commands First ---
+  if ($isAdmin) {
+      if ($text === "/panel" || ($text === "/start" && $isSupportGroup)) {
+          $all = $db["users"] ?? [];
+          $total = count($all);
+          $todayStart = strtotime('today');
+          $today = 0;
+          foreach($all as $id=>$uu){ if( (int)($uu["created_at"]??0) >= $todayStart ) $today++; }
+          $pendingExCount = count($db["pending_exercises"] ?? []);
+          $pendingRecCount = count($db["pending_receipts"] ?? []);
+          $pendingBizCount = count(array_filter($db["business_automation_requests"] ?? [], fn($r) => $r['status'] === 'pending'));
+          $openTickets  = count($db["support_open"] ?? []);
+          $msg = "🛠️ <b>پنل مدیریت ATB</b> — نسخه ".ATB_VERSION."\n\n"
+                   . "👥 کل کاربران: <b>{$total}</b> | امروز: <b>{$today}</b>\n"
+                   . "⏳ تمرین‌های در صف: <b>{$pendingExCount}</b>\n"
+                   . "🧾 رسیدهای در صف: <b>{$pendingRecCount}</b>\n"
+                   . "💡 درخواست‌های هوشمندسازی: <b>{$pendingBizCount}</b>\n"
+                   . "📥 تیکت‌های پشتیبانیِ باز: <b>{$openTickets}</b>";
+          $kb = json_encode(["inline_keyboard"=>[
+            [ ["text"=>"🔄 تازه‌سازی آمار","callback_data"=>"ap:stats"] ],
+            [ ["text"=>"📊 خروجی کاربران","callback_data"=>"ap:export_menu"] ],
+            [ ["text"=>"⏳ بررسی تمرین‌ها","callback_data"=>"ap:pending_exercises"], ["text"=>"🧾 بررسی رسیدها","callback_data"=>"ap:pending_receipts"] ],
+            [ ["text"=>"💡 درخواست‌های هوشمندسازی","callback_data"=>"ap:biz_auto_requests"] ],
+            [ ["text"=>"📥 تیکت‌های باز","callback_data"=>"ap:support_open"] ],
+            [ ["text"=>"📚 مدیریت دوره‌ها", "callback_data"=>"ap:manage_courses"], ["text"=>"👑 مدیریت اشتراک‌ها","callback_data"=>"ap:subs_info"] ],
+            [ ["text"=>"📢 پیام همگانی","callback_data"=>"ap:broadcast"] ],
+            [ ["text"=>"🧰 ابزارک", "callback_data"=>"ap:manage_toolkit"], ["text"=>"🖼️ رسانه استارت", "callback_data"=>"ap:manage_start_media"] ],
+            [ ["text"=>"💳 کارت بانکی","callback_data"=>"ap:set_vip_card"] ],
+            [ ["text"=>"📖 راهنمای دستورات","callback_data"=>"ap:commands"] ]
+          ]], JSON_UNESCAPED_UNICODE);
+          tg_sendMessage($chat, $msg, $kb);
+          db_save($db); return;
+      }
+      if (preg_match('~^/user\s+(\d+)$~',$text,$m)){
+        $uid = (int)$m[1];
+        if(!isset($db["users"][$uid])){ tg_sendMessage($chat,"کاربر یافت نشد."); return; }
+        $target_user_ref = &user($db, $uid); // Get reference to target user
+        tg_sendMessage($chat, admin_user_summary($uid, $target_user_ref, $db), admin_user_kb($uid, $target_user_ref));
+        return;
+      }
+      if (isset($update["message"]["reply_to_message"])) {
+          if (trim($text) === "/makeadmin") {
+              $targetId = $update["message"]["reply_to_message"]["from"]["id"] ?? null;
+              if ($targetId) {
+                  if (!in_array((int)$targetId, $db["admin_ids"], true)) {
+                      $db["admin_ids"][] = (int)$targetId;
+                      db_save($db);
+                      tg_sendMessage($chat, "✅ کاربر {$targetId} به ادمین‌های ربات اضافه شد.");
+                  } else {
+                      tg_sendMessage($chat, "ℹ️ این کاربر از قبل ادمین است.");
+                  }
+              } else {
+                  tg_sendMessage($chat, "⚠️ روی پیام شخص موردنظر ریپلای کن و دوباره /makeadmin بزن.");
+              }
+              return;
+          }
+          if (trim($text) === "/removeadmin") {
+              $targetId = $update["message"]["reply_to_message"]["from"]["id"] ?? null;
+              if ($targetId) {
+                  $db["admin_ids"] = array_values(array_filter($db["admin_ids"], fn($x) => (int)$x !== (int)$targetId));
+                  db_save($db);
+                  tg_sendMessage($chat, "🗑️ کاربر {$targetId} از ادمین‌ها حذف شد.");
+              } else {
+                  tg_sendMessage($chat, "⚠️ روی پیام شخص موردنظر ریپلای کن و دوباره /removeadmin بزن.");
+              }
+              return;
+          }
+      }
+      if (trim($text) === "/adminlist") {
+        $ids = $db["admin_ids"] ?? [];
+        if (empty($ids)) tg_sendMessage($chat, "هیچ ادمینی ثبت نشده.");
+        else tg_sendMessage($chat, "ادمین‌ها:\n" . implode("\n", array_map(fn($i) => "<code>".$i."</code>", $ids)));
+        return;
+      }
+  }
+  if (preg_match('~^/adminlogin\s+.*~', $text)) {
+    $argPhone = normalize_phone($text);
+    $ok = false;
+    $cfg = $GLOBALS["ADMIN_PHONE"];
+    if (is_array($cfg)) {
+      foreach($cfg as $ph){ if ($argPhone === normalize_phone($ph)) { $ok = true; break; } }
+    } else {
+      $ok = ($argPhone === normalize_phone($cfg));
+    }
+    if ($ok) {
+      if(!in_array((int)$fromId, $db["admin_ids"], true)){ $db["admin_ids"][] = (int)$fromId; db_save($db); }
+      tg_sendMessage($chat, "✅ ورود ادمین تأیید شد. حالا می‌توانی از دستور /panel استفاده کنی.");
+    } else {
+      tg_sendMessage($chat, "❌ شماره واردشده با ادمین اصلی همخوانی ندارد.");
+    }
+    return;
+  }
+  
+  $userForRegAndRestrict = &user($db, $chat); // For PV messages, chat and fromId are the same.
+  
+  // --- Mandatory Registration Flow ---
+  if (!is_fully_registered($userForRegAndRestrict) && !$isSupportGroup) {
+      if (strpos($text, "/start") === 0) {
+          handle_registration_flow($userForRegAndRestrict, $chat, $text);
+          db_save($db); return;
+      }
+      switch($userForRegAndRestrict["state"]) {
+          case "collect_name":
+              if ($text) {
+                  $userForRegAndRestrict["name"] = $text;
+                  handle_registration_flow($userForRegAndRestrict, $chat, $text);
+              }
+              db_save($db); return;
+          case "await_phone":
+              if (isset($update["message"]["contact"])) {
+                  $userForRegAndRestrict["phone"] = normalize_phone($update["message"]["contact"]["phone_number"] ?? "");
+                  tg_sendMessage($chat, "شماره شما ذخیره شد ✅", rkb_remove());
+                  handle_registration_flow($userForRegAndRestrict, $chat, $text);
+              }
+              db_save($db);
+              return;
+          case "collect_job_profile":
+              if ($text) {
+                  $userForRegAndRestrict["job"] = $text;
+                  $userForRegAndRestrict["state"] = "idle";
+                  $userName = htmlspecialchars($userForRegAndRestrict["name"]);
+                  tg_sendMessage($chat, "عالی شد {$userName}! ثبت‌نام شما تکمیل شد. ✅\n\nخیلی خوشحالیم که به جمع ما پیوستی. حالا می‌توانی از تمام امکانات ربات استفاده کنی.", main_menu());
+                  db_save($db); // Save after sending welcome
+              }
+              return;
+          default:
+              handle_registration_flow($userForRegAndRestrict, $chat, $text);
+              db_save($db); return;
+      }
+  }
+  
+  // --- Standard User Flow (after registration) ---
+  if (($userForRegAndRestrict["state"] ?? "") !== "support_await_msg") {
+    if (enforce_restrictions($db, $userForRegAndRestrict, $chat, $isAdmin && $isSupportGroup)) { db_save($db); return; }
+  }
+
+  // --- REGULAR/ADMIN USER STATES (MUST BE CHECKED BEFORE ADMIN-ONLY INPUTS) ---
+  $currentUser =& $userForRegAndRestrict;
+
+  // Handle exercise submission
+  if(preg_match("/^await_exercise_(\d+)_(\d+)$/", $currentUser["state"], $m)){
+    $course_id = (int)$m[1];
+    $step_index = (int)$m[2];
+    $currentUser["state"] = "pending_exercise_{$course_id}_{$step_index}";
+    tg_sendMessage($chat,"✅ تمرین شما دریافت شد. به محض تایید توسط پشتیبانی، مرحله بعدی برایتان باز می‌شود.");
+    
+    $mid = $update["message"]["message_id"];
+    tg_forwardMessage($SUPPORT_CHAT, $chat, $mid);
+    $db["pending_exercises"][] = ["user_id"=>$chat, "course_id"=>$course_id, "step"=>$step_index, "orig_mid"=>$mid, "time"=>time()];
+    
+    $humanStep = $step_index + 1;
+    $course = get_course_by_id($db, $course_id);
+    $course_title = $course['title'] ?? "نامشخص";
+    
+    $info = "📝 <b>تأیید تمرین: {$course_title}</b> (مرحله {$humanStep})\n"
+          . "👤 کاربر: <a href=\"tg://user?id={$chat}\">".$chat."</a>\n"
+          . "نام: ".($currentUser["name"]?:'-')." | شماره: ".($currentUser["phone"]?:'-');
+    tg_sendMessage($SUPPORT_CHAT, $info, admin_exercise_kb($chat, $course_id, $step_index));  
+    db_save($db); return;
+  }
+
+  // Handle receipt submission
+  if (preg_match("/^await_receipt_(\d+)$/", $currentUser["state"], $m)) {
+      $course_id = (int)$m[1];
+      $photoId = msg_get_photo_file_id($update["message"]);
+      if (!$photoId) {
+          tg_sendMessage($chat, "⚠️ لطفاً فقط <b>عکس رسید</b> را بفرستید.", kb([[btn("⬅️ بازگشت به دوره‌ها","paid_courses")]]));
+          return;
+      }
+      $currentUser["state"] = "pending_receipt_{$course_id}";
+
+      $mid = $update["message"]["message_id"];
+      tg_forwardMessage($SUPPORT_CHAT, $chat, $mid);
+      $db["pending_receipts"][] = ["user_id" => $chat, "course_id" => $course_id, "file_id" => $photoId, "orig_mid" => $mid, "time" => time()];
+      $course = get_course_by_id($db, $course_id);
+      $course_title = $course['title'] ?? "نامشخص";
+
+      $info = "🧾 <b>رسید جدید برای دوره: {$course_title}</b>\n"
+            . "👤 کاربر: <a href=\"tg://user?id={$chat}\">".$chat."</a>\n"
+            . "نام: ".(($currentUser["name"]??'-')?:'-')." | شماره: ".(($currentUser["phone"]??'-')?:'-');
+      tg_sendMessage($SUPPORT_CHAT, $info, admin_receipt_kb($chat, $course_id));
+      tg_sendMessage($chat, "رسید شما دریافت شد. 🙏\nتیم پشتیبانی به زودی آن را بررسی کرده و نتیجه را به شما اطلاع می‌دهد.");
+      db_save($db); return;
+  }
+
+  // Handle VIP receipt submission
+  if (strpos(($currentUser["state"] ?? ""), "vip_upload_receipt_") === 0) {
+    $sub_type = substr($currentUser["state"], strlen("vip_upload_receipt_"));
+    $photoId = msg_get_photo_file_id($update["message"]);
+    if (!$photoId) {
+      tg_sendMessage($chat, "⚠️ لطفاً فقط <b>عکس رسید</b> را بفرستید.", kb([[btn("⬅️ بازگشت","back_to_menu")]]));
+      return;
+    }
+    $currentUser["state"] = "await_vip_approval";
+    db_save($db);
+    $mid = $update["message"]["message_id"];
+    tg_forwardMessage($SUPPORT_CHAT, $chat, $mid);
+    
+    $plan_map = ["3m"=>"۳ ماهه", "6m"=>"۶ ماهه", "12m"=>"۱۲ ماهه"];
+    $plan_text = $plan_map[$sub_type] ?? $sub_type;
+    
+    $info = "👑 <b>رسید جدید اشتراک VIP</b>\n"
+          . "👤 کاربر: <a href=\"tg://user?id={$chat}\">".$chat."</a>\n"
+          . "پلن انتخابی: <b>{$plan_text}</b>\n"
+          . "نام: ".(($currentUser["name"]??'-')?:'-')." | شماره: ".(($currentUser["phone"]??'-')?:'-');
+    tg_sendMessage($SUPPORT_CHAT, $info, admin_vip_receipt_kb($chat, $sub_type));
+    tg_sendMessage($chat, "رسید شما دریافت شد. 🙏\nتیم پشتیبانی به زودی آن را بررسی کرده و نتیجه را به شما اطلاع می‌دهد.");
+    return;
+  }
+
+  // --- Admin Handlers (continued) ---
+  if ($isAdmin) {
+    $awaitVipCard = $db["await_set_vip_card"][$fromId] ?? false;
+    if ($awaitVipCard) {
+      $phId = msg_get_photo_file_id($update["message"]);
+      if ($phId) {
+        $db["vip_card"]["file_id"] = $phId;
+        unset($db["await_set_vip_card"][$fromId]);
+        db_save($db);
+        tg_sendMessage($chat, "✅ تصویر کارت بانکی با موفقیت ذخیره شد.");
+        return;
+      } else {
+        tg_sendMessage($chat, "⚠️ لطفاً یک عکس ارسال کنید.");
+        return;
+      }
+    }
+    $awaitStartMedia = $db["await_set_start_media"][$fromId] ?? false;
+    if ($awaitStartMedia) {
+        $mediaId = msg_get_any_media_file_id($update["message"], $mediaKind);
+        if ($mediaId) {
+            $db["start_media"]["file_id"] = $mediaId;
+            $db["start_media"]["type"] = $mediaKind;
+            unset($db["await_set_start_media"][$fromId]);
+            db_save($db);
+            tg_sendMessage($chat, "✅ رسانه استارت (نوع: {$mediaKind}) ذخیره شد.");
+            return;
+        } else {
+            tg_sendMessage($chat, "⚠️ لطفاً یک گیف (animation)، عکس یا ویدئو ارسال کنید.");
+            return;
+        }
+    }
+    if (isset($db["pending_support_replies"][$fromId])) {
+      $pending  = $db["pending_support_replies"][$fromId];
+      $targetId = (int)$pending["user_id"];
+      $mid      = $update["message"]["message_id"];
+      $clean    = $text;
+      
+      $sentSomething = false;
+      if ($text || isset($update["message"]["photo"]) || isset($update["message"]["video"]) || isset($update["message"]["document"])) {
+          tg_sendMessage($targetId, "🧑‍💻 <b>پاسخ از طرف پشتیبانی:</b>");
+          tg_copyMessage($targetId, $chat, $mid);
+          $sentSomething = true;
+      }
+
+      if ($sentSomething) {
+        tg_sendMessage($chat, "✅ پاسخ شما برای کاربر {$targetId} ارسال شد.");
+        unset($db["pending_support_replies"][$fromId]);
+        support_open_close_user($db, $targetId);
+        db_save($db);
+        return;
+      }
+    }
+    if (isset($db["pending_rejects"][$fromId])) {
+      if ($text !== "") {
+        $pending    = $db["pending_rejects"][$fromId];
+        $targetUser = (int)$pending["user_id"];
+        $courseId   = $pending["course_id"];
+        $step       = $pending["step"];
+        if (isset($db["users"][$targetUser])) {
+          $uu =& user($db, $targetUser);
+          $uu["state"] = "await_exercise_{$courseId}_{$step}";
+          remove_pending_exercise($db, $targetUser, $courseId, $step);
+          db_save($db);
+          $hs  = $step + 1;
+          tg_sendMessage($targetUser, "❌ متاسفانه تمرین مرحله {$hs} شما رد شد.\n\n📝 <b>دلیل:</b>\n".$text."\n\nلطفاً با توجه به این نکته، تمرین خود را دوباره بفرستید.");
+          tg_sendMessage($chat, "✅ پیام شما برای کاربر {$targetUser} ارسال شد.");
+        } else {
+          tg_sendMessage($chat, "⚠️ کاربر هدف در DB پیدا نشد.");
+        }
+        unset($db["pending_rejects"][$fromId]);
+        db_save($db);
+        return;
+      }
+    }
+    if (isset($db["pending_broadcast"]) && $db["pending_broadcast"]["admin_id"] == $fromId) {
+        $db["pending_broadcast"]["message"] = $update["message"];
+        $users_count = count($db["users"]);
+        tg_sendMessage($chat, 
+          "✅ پیام شما دریافت شد. این پیام برای <b>{$users_count}</b> کاربر ارسال خواهد شد.\n\n" .
+          "<b>آیا تایید می‌کنید؟</b>",
+          kb([[btn("✅ بله، ارسال کن", "ap:broadcast_confirm"), btn("❌ نه، لغو کن", "ap:broadcast_cancel")]])
+        );
+        db_save($db);
+        return;
+    }
+    if (isset($db["pending_admin_inputs"][$fromId])) {
+      $cfg = $db["pending_admin_inputs"][$fromId];
+      $mode = $cfg["mode"];
+      if ($mode === "rename"){
+          $uid = (int)$cfg["uid"];
+          if ($text !== "") {
+              if(isset($db["users"][$uid])){
+                  $db["users"][$uid]["name"]=$text;
+                  tg_sendMessage($chat,"✅ نام کاربر {$uid} به «{$text}» تغییر کرد.");
+              } else {
+                  tg_sendMessage($chat,"کاربر یافت نشد.");
+              }
+              unset($db["pending_admin_inputs"][$fromId]); db_save($db);
+              return;
+          }
+      }
+      elseif ($mode === 'course_title' || $mode === 'edit_course_title') {
+          $is_edit = $mode === 'edit_course_title';
+          if ($is_edit) {
+              $course_id = $cfg['course_id'];
+              foreach ($db['courses'] as &$course) {
+                  if ($course['id'] == $course_id) {
+                      $course['title'] = $text;
+                      break;
+                  }
+              }
+              tg_sendMessage($chat, "✅ عنوان دوره با موفقیت ویرایش شد.");
+              unset($db["pending_admin_inputs"][$fromId]);
+          } else {
+              $db["pending_admin_inputs"][$fromId]['title'] = $text;
+              $db["pending_admin_inputs"][$fromId]['mode'] = 'course_description';
+              tg_sendMessage($chat, "✅ عنوان ثبت شد. حالا <b>توضیحات دوره</b> را ارسال کنید.");
+          }
+          db_save($db);
+          return;
+      }
+      elseif ($mode === 'course_description' || $mode === 'edit_course_description') {
+          $is_edit = $mode === 'edit_course_description';
+           if ($is_edit) {
+              $course_id = $cfg['course_id'];
+              foreach ($db['courses'] as &$course) {
+                  if ($course['id'] == $course_id) {
+                      $course['description'] = $text;
+                      break;
+                  }
+              }
+              tg_sendMessage($chat, "✅ توضیحات دوره با موفقیت ویرایش شد.");
+              unset($db["pending_admin_inputs"][$fromId]);
+          } else {
+              $db["pending_admin_inputs"][$fromId]['description'] = $text;
+              $db["pending_admin_inputs"][$fromId]['mode'] = 'course_price';
+              tg_sendMessage($chat, "✅ توضیحات ثبت شد. حالا <b>قیمت دوره</b> را به تومان و به صورت عددی ارسال کنید (برای دوره رایگان، 0 را بفرستید).");
+          }
+          db_save($db);
+          return;
+      }
+       elseif ($mode === 'course_price' || $mode === 'edit_course_price') {
+          if (is_numeric($text)) {
+              $is_edit = $mode === 'edit_course_price';
+              if ($is_edit) {
+                  $course_id = $cfg['course_id'];
+                  foreach ($db['courses'] as &$course) {
+                      if ($course['id'] == $course_id) {
+                          $course['price'] = (int)$text;
+                          break;
+                      }
+                  }
+                  tg_sendMessage($chat, "✅ قیمت دوره با موفقیت ویرایش شد.");
+                  unset($db["pending_admin_inputs"][$fromId]);
+              } else {
+                  $db["pending_admin_inputs"][$fromId]['price'] = (int)$text;
+                  $db["pending_admin_inputs"][$fromId]['mode'] = 'course_content';
+                  $db["pending_admin_inputs"][$fromId]['content'] = [];
+                   tg_sendMessage($chat, "✅ قیمت ثبت شد. حالا محتوای دوره را مرحله به مرحله (ویدئو یا عکس) فوروارد کنید. کپشن هر پیام، متن همان مرحله خواهد بود.\n\n<b>مهم:</b> برای دوره رایگان، در کپشن هر مرحله، متن تمرین را نیز با فرمت زیر اضافه کنید:\n<code>[EXERCISE]متن کامل تمرین اینجا[/EXERCISE]</code>\n\nپس از ارسال تمام مراحل، دستور /done را بفرستید.");
+              }
+              db_save($db);
+          } else {
+              tg_sendMessage($chat, "⚠️ لطفاً قیمت را فقط به صورت عددی (مثلاً: 150000) وارد کنید.");
+          }
+          return;
+      }
+      elseif ($mode === 'course_content' || $mode === 'add_course_step') {
+          if ($text === '/done') {
+              if ($mode === 'add_course_step') {
+                 tg_sendMessage($chat, "✅ مراحل جدید با موفقیت به دوره اضافه شدند.");
+              } else {
+                  $course_data = $db["pending_admin_inputs"][$fromId];
+                  if (empty($course_data['content'])) {
+                      tg_sendMessage($chat, "⚠️ هیچ محتوایی برای دوره ارسال نشد. عملیات لغو شد.");
+                      unset($db["pending_admin_inputs"][$fromId]); db_save($db);
+                      return;
+                  }
+                  
+                  $new_course_id = count($db['courses']) > 0 ? max(array_column($db['courses'], 'id')) + 1 : 1;
+                  
+                  $db['courses'][] = [
+                      "id" => $new_course_id,
+                      "title" => $course_data['title'],
+                      "description" => $course_data['description'],
+                      "price" => $course_data['price'],
+                      "content" => $course_data['content']
+                  ];
+                   tg_sendMessage($chat, "✅ دوره جدید با عنوان «{$course_data['title']}» با موفقیت ساخته شد.");
+              }
+              unset($db["pending_admin_inputs"][$fromId]);
+              db_save($db);
+              return;
+          }
+
+          $file_id = msg_get_any_media_file_id($update["message"], $type);
+          if ($file_id) {
+              $caption_text = $update['message']['caption'] ?? '';
+              $exercise_prompt = null;
+              
+              $price = ($mode === 'add_course_step') ? get_course_by_id($db, $cfg['course_id'])['price'] : $cfg['price'];
+
+              if ($price == 0 && preg_match('/\[EXERCISE\](.*?)\[\/EXERCISE\]/s', $caption_text, $matches)) {
+                  $exercise_prompt = trim($matches[1]);
+                  $caption_text = trim(str_replace($matches[0], '', $caption_text));
+              }
+              
+              $new_step_data = ["type" => $type, "file_id" => $file_id, "caption" => $caption_text, "exercise_prompt" => $exercise_prompt];
+
+              if ($mode === 'add_course_step') {
+                  $course_id = $cfg['course_id'];
+                  foreach ($db['courses'] as &$course) {
+                      if ($course['id'] == $course_id) {
+                          $course['content'][] = $new_step_data;
+                          tg_sendMessage($chat, "مرحله " . count($course['content']) . " اضافه شد. مرحله بعدی را بفرستید یا /done را بزنید.");
+                          break;
+                      }
+                  }
+              } else {
+                   $db["pending_admin_inputs"][$fromId]['content'][] = $new_step_data;
+                   tg_sendMessage($chat, "مرحله " . count($db["pending_admin_inputs"][$fromId]['content']) . " اضافه شد. مرحله بعدی را بفرستید یا /done را بزنید.");
+              }
+              
+              db_save($db);
+          } else {
+              tg_sendMessage($chat, "⚠️ لطفاً یک ویدئو یا عکس ارسال کنید. برای پایان /done را بزنید.");
+          }
+          return;
+      }
+    }
+  }
+
+  // --- Regular Message Handlers ---
+  // Note: user context for non-admins is $currentUser which was set earlier
+  
+  if (preg_match('~^/start(?: ref_(\d+))?$~', $text, $matches)){
+    if (isset($matches[1])) {
+        $referrer_id = (int)$matches[1];
+        if (empty($currentUser['referrer_id']) && $referrer_id != $chat) {
+            $currentUser['referrer_id'] = $referrer_id;
+        }
+    }
+    $currentUser["state"] = "idle";
+    $media = $db["start_media"] ?? null;
+    if ($media && !empty($media["file_id"])) {
+        if ($media['type'] === 'animation') tg_sendAnimation($chat, $media['file_id']);
+        elseif ($media['type'] === 'video' || $media['type'] === 'document') tg_sendVideo($chat, $media['file_id'], null);
+        elseif ($media['type'] === 'photo') tg_sendPhoto($chat, $media['file_id'], null);
+    }
+    tg_sendMessage($chat, welcome_text(), main_menu());
+    db_save($db); return;
+  }
+  if ($text==="/about"){
+    tg_sendMessage($chat, about_text(), kb([[btn("⬅️ بازگشت","back_to_menu")]]));
+    return;
+  }
+  if (preg_match('~^/?(back|cancel)/?$~i',$text)) {
+    $currentUser["state"]="idle"; db_save($db);
+    tg_sendMessage($chat, "✅ به منوی اصلی برگشتی.", rkb_remove());
+    tg_sendMessage($chat, welcome_text(), main_menu()); return;
+  }
+
+    // Business Automation Flow
+    if (strpos($currentUser['state'], 'biz_auto_') === 0) {
+        $current_question_num = (int) substr($currentUser['state'], 9);
+        $currentUser['biz_auto_form_data']['q' . $current_question_num] = $text;
+
+        $next_question_num = $current_question_num + 1;
+        $questions = [
+            2 => "۲/۵: عالی! حالا بگو <b>مشتری‌های اصلی</b> شما چه کسانی هستند؟ (مثلاً: خانم‌های خانه‌دار، دانشجوها، مدیران شرکت‌ها و...)",
+            3 => "۳/۵: در حال حاضر <b>بزرگ‌ترین چالش</b> شما در فروش یا بازاریابی چیست؟ (مثلاً: پیدا کردن مشتری جدید، پاسخگویی به مشتری‌ها، تولید محتوا و...)",
+            4 => "۴/۵: لطفاً آدرس <b>سایت، کانال تلگرام یا پیج اینستاگرام</b> خود را بفرستید.",
+            5 => "۵/۵: و در آخر، برای هماهنگی یک جلسه مشاوره رایگان، لطفاً <b>نام کامل و شماره تماس</b> خود را وارد کنید."
+        ];
+
+        if (isset($questions[$next_question_num])) {
+            $currentUser['state'] = 'biz_auto_q' . $next_question_num;
+            tg_sendMessage($chat, $questions[$next_question_num]);
+        } else {
+            // End of questionnaire
+            $answers = $currentUser['biz_auto_form_data'];
+            $req_id = uniqid('biz_');
+            $summary = "💡 <b>درخواست جدید برای هوشمندسازی کسب‌وکار</b>\n\n"
+                       . "👤 کاربر: <a href='tg://user?id={$chat}'>{$chat}</a>\n"
+                       . "<b>نام ثبت‌شده:</b> " . ($currentUser['name'] ?? 'ثبت نشده') . "\n"
+                       . "<b>شماره ثبت‌شده:</b> " . ($currentUser['phone'] ?? 'ثبت نشده') . "\n\n"
+                       . "<b>۱. زمینه فعالیت:</b>\n" . ($answers['q1'] ?? '—') . "\n\n"
+                       . "<b>۲. مشتریان هدف:</b>\n" . ($answers['q2'] ?? '—') . "\n\n"
+                       . "<b>۳. بزرگ‌ترین چالش:</b>\n" . ($answers['q3'] ?? '—') . "\n\n"
+                       . "<b>۴. آدرس‌ها:</b>\n" . ($answers['q4'] ?? '—') . "\n\n"
+                       . "<b>۵. اطلاعات تماس برای مشاوره:</b>\n" . ($answers['q5'] ?? '—') . "\n\n"
+                       . "#هوشمندسازی #{$req_id}";
+            
+            tg_sendMessage($SUPPORT_CHAT, $summary);
+            
+            $db['business_automation_requests'][] = [
+                'id' => $req_id,
+                'user_id' => $chat,
+                'data' => $answers,
+                'time' => time(),
+                'status' => 'pending'
+            ];
+
+            $currentUser['state'] = 'idle';
+            $currentUser['biz_auto_form_data'] = []; // Clear temporary data
+            
+            $confirmation_text = "درخواست شما با موفقیت ثبت شد.\n\n"
+                               . "تیم ما اطلاعات شما را بررسی کرده و به زودی برای هماهنگی جلسه مشاوره با شما تماس می‌گیرد.\n\n"
+                               . "<b>یادآوری هزینه‌ها:</b>\n"
+                               . "▫️ هزینه اشتراک ماهانه: <b>۹۷۰ هزار تومان</b>\n"
+                               . "▫️ هزینه نصب و راه‌اندازی اولیه: <b>۵۰۰ هزار تومان</b>";
+
+            tg_sendMessage($chat, $confirmation_text, main_menu());
+        }
+        db_save($db); return;
+    }
+
+
+  if (($currentUser["state"] ?? "") === "support_await_msg") {
+    if ($text === "⬅️ بازگشت") {
+      $currentUser["state"] = "idle";
+      db_save($db);
+      tg_sendMessage($chat, "✅ به منوی اصلی برگشتی.", rkb_remove());
+      tg_sendMessage($chat, welcome_text(), main_menu()); return;
+    }
+    $mid = $update["message"]["message_id"];
+    tg_forwardMessage($SUPPORT_CHAT, $chat, $mid);
+    $preview = ""; $caption = trim($update["message"]["caption"] ?? "");
+    if ($text !== "") { $preview = $text; } elseif ($caption !== "") { $preview = $caption; }
+    $mediaLabel = "";
+    if (isset($update["message"]["photo"]))   $mediaLabel = "📷 عکس";
+    elseif (isset($update["message"]["video"]))   $mediaLabel = "🎬 ویدئو";
+    elseif (isset($update["message"]["document"]))$mediaLabel = "📎 فایل";
+    elseif (isset($update["message"]["voice"]))   $mediaLabel = "🎤 ویس";
+    elseif (isset($update["message"]["audio"]))   $mediaLabel = "🎵 صدا";
+    elseif (isset($update["message"]["sticker"])) $mediaLabel = "🧩 استیکر";
+    elseif (isset($update["message"]["animation"])) $mediaLabel = "🎞 انیمیشن";
+    if ($mediaLabel !== "") { $preview = trim($mediaLabel.( $preview!=="" ? ": ".$preview : "" )); }
+    if ($preview==="") $preview="—";
+    $preview = preg_replace('/\s+/u',' ', $preview);
+    support_open_upsert($db, $chat, $mid, $preview);
+    $info = "🆘 <b>درخواست پشتیبانی جدید</b>\n"
+          . "👤 کاربر: <a href=\"tg://user?id={$chat}\">".$chat."</a>\n"
+          . "نام: ".(($currentUser["name"]??'-')?:'-')." | شماره: ".(($currentUser["phone"]??'-')?:'-');
+    tg_sendMessage($SUPPORT_CHAT, $info, admin_support_kb($chat));
+    tg_sendMessage($chat, "✅ پیام شما به دست تیم پشتیبانی رسید. لطفاً صبور باشید، به زودی پاسخ شما را همینجا ارسال می‌کنیم.");
+    $currentUser["state"]="idle"; db_save($db); return;
+  }
+
+  // Default fallback
+  if(!$isSupportGroup) {
+    tg_sendMessage($chat, "دستور شما را متوجه نشدم. برای شروع /start را بزنید یا از دکمه‌های منوی اصلی استفاده کنید.", main_menu());
+  }
+  db_save($db); return;
+}
+/* ==== MSG_HANDLER END ============================================ */
+
+/* ==== CB_HANDLER START =========================================== */
+if(isset($update["callback_query"])){
+  $db      = db_load();
+  add_missing_courses_if_needed($db); // Ensure default courses exist
+  $cb      = $update["callback_query"];
+  $chat    = $cb["message"]["chat"]["id"];
+  $fromId  = $cb["from"]["id"] ?? null;
+  $data    = $cb["data"];
+  $msgId   = $cb["message"]["message_id"];
+  $isAdmin = is_admin($db, $fromId);
+  $isSupportGroup = (string)$chat === (string)$SUPPORT_CHAT;
+  
+  $u =& user($db, $fromId); // User context is always the person who clicked
+  $userForRegAndRestrict = &user($db, $chat); // For PV context, chat and fromId are same
+
+  // --- Mandatory Registration check for callbacks ---
+  if (!is_fully_registered($userForRegAndRestrict) && strpos($data, "ai_lvl:") !== 0 && !$isSupportGroup) {
+      handle_registration_flow($userForRegAndRestrict, $chat, null);
+      db_save($db);
+      tg_answerCb($cb["id"]);
+      return;
+  }
+   if (($userForRegAndRestrict["state"] ?? "") === "await_ai" && strpos($data, "ai_lvl:") === 0) {
+       $val = substr($data, 7);
+       $userForRegAndRestrict["ai"] = $val;
+       tg_answerCb($cb["id"], "سطح آشنایی شما ثبت شد ✅");
+       tg_editMessageText($chat, $msgId, "ممنون! سطح آشنایی شما ثبت شد."); // Remove the button after click
+       handle_registration_flow($userForRegAndRestrict, $chat, null);
+       db_save($db);
+       return;
+   }
+
+  $skipLockCb = in_array($data, ["support_contact"]);
+  if (!$skipLockCb){
+    if (enforce_restrictions($db, $userForRegAndRestrict, $chat, $isAdmin && $isSupportGroup)) { tg_answerCb($cb["id"]); db_save($db); return; }
+  }
+
+  if ($data === "back_to_menu") {
+    $userForRegAndRestrict["state"]="idle"; db_save($db);
+    tg_editMessageText($chat, $msgId, welcome_text(), main_menu()); tg_answerCb($cb["id"]); return;
+  }
+
+  if ($data === "toolkit") { tg_editMessageText($chat, $msgId, "🧰 <b>ابزارک ATB</b>\nاینجا یک سری لینک کاربردی برای شما آماده کرده‌ایم:", toolkit_kb()); tg_answerCb($cb["id"]); return; }
+  if ($data === "toolkit_ctfc") { sendCTFC($chat); tg_answerCb($cb["id"]); return; }
+  if ($data === "toolkit_vpn") {
+    $vpnTxt = "🛡 <b>اکانت پرمیوم ExpressVPN (یک‌ساله)</b>\n\n"
+            . "این اکانت‌ها با قیمت عالی تهیه شده‌اند تا بدون دغدغه و با بالاترین سرعت به دنیای هوش مصنوعی دسترسی داشته باشید.\n\n"
+            . "💎 قیمت ویژه اعضای کلاب: <b>590 هزار تومان</b> (۵۰٪ تخفیف)\n"
+            . "✅ بدون قطعی — هم برای موبایل و هم برای دسکتاپ\n\n"
+            . "🛍 <b>برای خرید به این آیدی پیام دهید:</b> @ExpVpn_Admin\n\n"
+            . "<i>(توجه: ما فقط این فروشنده معتبر را به شما معرفی می‌کنیم.)</i>";
+    tg_editMessageText($chat, $msgId, $vpnTxt, kb([[btn("⬅️ بازگشت به ابزارک","toolkit")]]));
+    tg_answerCb($cb["id"]); return;
+  }
+
+  if ($data === "faq") {
+    tg_editMessageText($chat, $msgId, "❓ <b>سوالات متداول</b>\nجواب سوال شما احتمالاً اینجاست. روی یکی از گزینه‌ها بزنید:", faq_menu_kb());
+    tg_answerCb($cb["id"]); return;
+  }
+  if (strpos($data,"faq:")===0) {
+    $k = substr($data,4); $items = faq_items();
+    if (isset($items[$k])) {
+      $ans = "<b>".$items[$k]["q"]."</b>\n\n".$items[$k]["a"];
+      $kb = kb([
+        [ ["text"=>"📚 مشاهده بقیه سوالات","callback_data"=>"faq"] ],
+        [ ["text"=>"⬅️ بازگشت به منوی اصلی","callback_data"=>"back_to_menu"] ]
+      ]);
+      tg_editMessageText($chat, $msgId, $ans, $kb);
+    }
+    tg_answerCb($cb["id"]); return;
+  }
+  
+  if($data === "start_free_course"){
+    $progress = get_user_course_progress($db, $chat, 1);
+    $next_step = ($progress['progress'] ?? -1) + 1;
+    $free_course = get_course_by_id($db, 1);
+    if ($next_step < count($free_course['content'])) {
+        send_course_step($db, $chat, 1, $next_step);
+    } else {
+        $userForRegAndRestrict["state"]="completed_free";
+        $finalText = "تبریک! شما قبلاً دوره مقدماتی را با موفقیت تمام کرده‌اید.\n\n"
+                   . "به همین دلیل، شما عضو کانال خصوصی <b>ATB Club</b> هستید. روی دکمه زیر بزنید و وارد شوید:";
+        $finalKb = json_encode(["inline_keyboard" => [[["text" => "🚪 ورود به کلاب ATB", "url" => $GLOBALS["PRIVATE_CHANNEL_INVITE"]]]]], JSON_UNESCAPED_UNICODE);
+        tg_sendMessage($chat, $finalText, $finalKb);
+    }
+    db_save($db); tg_answerCb($cb["id"]); return;
+  }
+
+  if ($data === "about") {
+    tg_editMessageText($chat, $msgId, about_text(), kb([[btn("⬅️ بازگشت","back_to_menu")]]));
+    tg_answerCb($cb["id"]); return;
+  }
+
+  if ($data === "account_menu") {
+    $ref_balance = ($userForRegAndRestrict['referral_balance_usd'] ?? 0);
+    $progress = get_user_course_progress($db, $chat, 1);
+    $p_step = ($progress['progress'] ?? -1) + 1;
+    $p_total = count(get_course_by_id($db, 1)['content'] ?? []);
+    $p_text = ($p_step >= $p_total) ? "تکمیل شده ✅" : "مرحله {$p_step} از {$p_total}";
+    
+    $sub_status = format_sub_status($db, $chat);
+
+    $courses_info = [];
+    if(isset($db['user_courses'][$chat])){
+        foreach($db['user_courses'][$chat] as $cid => $cdata){
+            if($cid == 1) continue;
+            $course = get_course_by_id($db, $cid);
+            $title = $course['title'] ?? "دوره {$cid}";
+            $courses_info[] = "• {$title} ({$cdata['status']})";
+        }
+    }
+    $courses_text = empty($courses_info) ? "ندارید" : "\n" . implode("\n", $courses_info);
+    $msg  = "👤 <b>پروفایل کاربری شما</b>\n\n"
+          ."<b>- نام:</b> ".($userForRegAndRestrict["name"]??"-")."\n"
+          ."<b>- شماره:</b> ".($userForRegAndRestrict["phone"]??"-")."\n"
+          ."<b>- شغل:</b> ".($userForRegAndRestrict["job"]??"-")."\n"
+          ."<b>- سطح آشنایی با AI:</b> ".($userForRegAndRestrict["ai"]??"-")."\n\n"
+          ."👑 <b>اشتراک VIP:</b> {$sub_status}\n"
+          ."🎓 <b>وضعیت دوره مقدماتی:</b> {$p_text}\n"
+          ."💰 <b>دوره‌های خریداری شده:</b> {$courses_text}\n\n"
+          ."💵 <b>درآمد شما از دعوت دوستان:</b> {$ref_balance} دلار";
+    tg_editMessageText($chat, $msgId, $msg, kb([[btn("⬅️ بازگشت به منوی اصلی","back_to_menu")]]));
+    tg_answerCb($cb["id"]); return;
+  }
+
+  if ($data === "referral_menu") {
+      global $BOT_TOKEN, $REFERRAL_REWARD_TEXT;
+      $bot_username = "YourBotUsername"; // Fallback
+      $me = tg_request("getMe", []);
+      if ($me && $me['ok']) {
+          $bot_username = $me['result']['username'];
+      }
+      $ref_link = "https://t.me/{$bot_username}?start=ref_{$chat}";
+      $ref_balance = ($userForRegAndRestrict['referral_balance_usd'] ?? 0);
+
+      $msg = "💵 <b>کسب درآمد دلاری با دعوت از دوستان!</b>\n\n"
+           . "با معرفی ربات ATB به دوستان خود، به راحتی درآمد دلاری داشته باشید.\n\n"
+           . "<b>چطور کار می‌کند؟</b>\n"
+           . "۱. لینک اختصاصی زیر را برای دوستان خود بفرستید.\n"
+           . "۲. به ازای هر دوستی که با لینک شما وارد ربات شود و <b>دوره مقدماتی رایگان را کامل کند</b>، مبلغ <b>{$REFERRAL_REWARD_TEXT}</b> به کیف پول شما اضافه می‌شود.\n\n"
+           . "<b>لینک دعوت شما:</b>\n"
+           . "<code>{$ref_link}</code>\n\n"
+           . "<b>موجودی فعلی شما:</b> {$ref_balance} دلار\n\n"
+           . "<i>برای تسویه حساب، کافی است به پشتیبانی پیام دهید.</i>";
+
+      tg_editMessageText($chat, $msgId, $msg, kb([[btn("⬅️ بازگشت به منوی اصلی","back_to_menu")]]));
+      tg_answerCb($cb["id"]); return;
+  }
+
+  if (strpos($data, "seen_step:") === 0) {
+    list(, $course_id, $step_index) = explode(":", $data);
+    $course_id = (int)$course_id;
+    $step_index = (int)$step_index;
+
+    if (user_is_locked($userForRegAndRestrict) || user_is_banned($userForRegAndRestrict)){ tg_answerCb($cb["id"], "متاسفانه دسترسی شما محدود است."); return; }
+    
+    $needState = "watch_{$course_id}_{$step_index}";
+    $wat = (int)($userForRegAndRestrict["watch_started_at"] ?? 0);
+    $elapsed = ($wat > 0) ? (time() - $wat) : 0;
+    if (($userForRegAndRestrict["state"] ?? "") === $needState && $elapsed < MIN_WATCH_SECONDS) {
+      tg_answerCb($cb["id"], "هنوز زود است! لطفاً اول ویدئو را کامل ببینید.");
+      return;
+    }
+    
+    $course = get_course_by_id($db, $course_id);
+    if(!$course) return;
+    if ($course['price'] == 0 && isset($course['content'][$step_index]['exercise_prompt'])) {
+        $userForRegAndRestrict["state"] = "await_exercise_{$course_id}_{$step_index}";
+        db_save($db);
+        tg_sendMessage($chat, $course['content'][$step_index]['exercise_prompt']);
+    } else {
+        if (!isset($db['user_courses'][$chat][$course_id])) $db['user_courses'][$chat][$course_id] = ['status'=>'active', 'progress'=>-1];
+        $db['user_courses'][$chat][$course_id]['progress'] = $step_index;
+        
+        $next_step = $step_index + 1;
+        if ($next_step < count($course['content'])) {
+            send_course_step($db, $chat, $course_id, $next_step);
+        } else {
+            $db['user_courses'][$chat][$course_id]['status'] = 'completed';
+            $userForRegAndRestrict['state'] = 'idle';
+            db_save($db);
+            tg_sendMessage($chat, "تبریک! شما دوره «{$course['title']}» را با موفقیت به پایان رساندید.", main_menu());
+        }
+    }
+    tg_answerCb($cb["id"], "عالیه! ✅");
+    return;
+  }
+  
+  if ($data === "vip_membership") {
+    $pr = "👑 <b>پیشنهاد ویژه‌ی اشتراک VIP</b>\n\n"
+        . "می‌خواهید یک قدم جلوتر از بقیه باشید و از هوش مصنوعی برای رشد کسب‌وکارتان پول بسازید؟ عضویت VIP برای شماست!\n\n"
+        . "<b>در کانال VIP چه چیزی منتظر شماست؟</b>\n"
+        . "▫️ <b>آموزش‌های هفتگی:</b> جدیدترین و کاربردی‌ترین تکنیک‌های AI که مستقیماً روی درآمد شما تأثیر می‌گذارد.\n"
+        . "▫️ <b>پرامپت‌های آماده:</b> کتابخانه‌ای از دستورات حرفه‌ای برای تولید محتوا, بازاریابی و فروش.\n"
+        . "▫️ <b>پشتیبانی اختصاصی:</b> سوالات خود را بپرسید و از تیم ما راهنمایی تخصصی بگیرید.\n\n"
+        . "🎁 <b>هدیه ویژه:</b> با خرید هر کدام از اشتراک‌ها، یک <b>اکانت یک‌ساله ExpressVPN</b> به ارزش ۵۹۰ هزار تومان هدیه بگیرید!\n\n"
+        . "<b>پلن‌های اشتراک:</b>\n"
+        . "▫️ ۳ ماهه: <b>۳۹۰ هزار تومان</b>\n"
+        . "▫️ ۶ ماهه: <b>۴۹۰ هزار تومان</b> (پرطرفدارترین)\n"
+        . "▫️ ۱۲ ماهه: <b>۹۷۰ هزار تومان</b>\n\n"
+        . "برای پرداخت، مبلغ پلن دلخواه خود را به شماره کارت موجود در این تصویر واریز کنید و بعد روی دکمه مربوط به پلن خود بزنید تا رسید را ارسال کنید.";
+        
+    $rows = [
+        [btn("ارسال رسید (پلن ۳ ماهه)", "vip_send_receipt:3m")],
+        [btn("ارسال رسید (پلن ۶ ماهه)", "vip_send_receipt:6m")],
+        [btn("ارسال رسید (پلن ۱۲ ماهه)", "vip_send_receipt:12m")],
+        [btn("⬅️ بازگشت به منوی اصلی", "back_to_menu")]
+    ];
+
+    $card_file_id = $db["vip_card"]["file_id"] ?? null;
+    if ($card_file_id) {
+        tg_sendPhoto($chat, $card_file_id, $pr, json_encode(["inline_keyboard"=>$rows], JSON_UNESCAPED_UNICODE));
+    } else {
+        $pr .= "\n\nℹ️ <i>شماره کارت توسط ادمین تنظیم نشده است. لطفاً به پشتیبانی پیام دهید.</i>";
+        tg_sendMessage($chat, $pr, json_encode(["inline_keyboard"=>$rows], JSON_UNESCAPED_UNICODE));
+    }
+    tg_answerCb($cb["id"]);
+    return;
+  }
+  
+  if (strpos($data, "vip_send_receipt:") === 0) {
+    $sub_type = substr($data, strlen("vip_send_receipt:"));
+    $userForRegAndRestrict["state"] = "vip_upload_receipt_" . $sub_type; 
+    db_save($db);
+    tg_sendMessage($chat, "📸 لطفاً <b>فقط عکس رسید پرداخت خود را</b> اینجا بفرستید.", kb([[btn("⬅️ انصراف و بازگشت","back_to_menu")]]));
+    tg_answerCb($cb["id"]);
+    return;
+  }
+  
+    // New Feature: Business Automation Start
+    if ($data === "biz_automation_start") {
+        $userForRegAndRestrict['state'] = 'biz_auto_q1';
+        $userForRegAndRestrict['biz_auto_form_data'] = []; // Reset form data
+        db_save($db);
+        tg_sendMessage($chat, 
+          "💡 <b>هوشمندسازی کسب‌وکار شما با ATB</b>\n\n" .
+          "تصور کنید رباتی داشته باشید که ۲۴ ساعته به جای شما کار کند، مشتری پیدا کند، به سوالاتشان جواب دهد و بفروشد! ما این کار را برای شما انجام می‌دهیم.\n\n" .
+          "برای شروع، لطفاً به ۵ سوال کوتاه جواب دهید تا با کسب‌وکار شما بیشتر آشنا شویم.\n\n" .
+          "۱/۵: لطفاً <b>زمینه فعالیت و کسب‌وکار</b> خود را به طور خلاصه شرح دهید. (مثلاً: فروش آنلاین لباس، کلینیک زیبایی، آموزش برنامه‌نویسی و...)"
+        );
+        tg_answerCb($cb["id"]);
+        return;
+    }
+    
+    // New Feature: Paid Courses Entry Point
+    if ($data === "paid_courses") {
+        $paid_courses = array_filter($db['courses'], fn($c) => ($c['price'] ?? 0) > 0);
+        if (empty($paid_courses)) {
+            tg_sendMessage($chat, "در حال حاضر دوره پولی برای فروش وجود ندارد.", kb([[btn("⬅️ بازگشت به منوی اصلی", "back_to_menu")]]));
+        } else {
+            $rows = [];
+            foreach($paid_courses as $course) {
+                $rows[] = [btn($course['title'], "view_course:{$course['id']}")];
+            }
+            $rows[] = [btn("⬅️ بازگشت به منوی اصلی", "back_to_menu")];
+            tg_sendMessage($chat, "💰 <b>لیست آموزش‌های پولساز</b>\n\nبرای مشاهده جزئیات و خرید، روی دوره مورد نظر کلیک کنید:", kb($rows));
+        }
+        tg_answerCb($cb["id"]);
+        return;
+    }
+
+
+  // Admin callbacks
+  if ($isAdmin) {
+    $adminChat = $chat; // In callbacks, chat is the channel where the button was clicked (e.g., support group)
+
+    if (strpos($data,"au:")===0){
+      $parts = explode(":", $data);
+      $action = $parts[1] ?? "";
+      $uid = (int)($parts[2]??0);
+      $arg1 = $parts[3] ?? null;
+      
+      if(!isset($db["users"][$uid])){ tg_answerCb($cb["id"],"کاربر یافت نشد."); return; }
+      $uu =& user($db, $uid);
+
+      if ($action==="info"){
+        tg_editMessageText($adminChat, $msgId, admin_user_summary($uid,$uu, $db), admin_user_kb($uid,$uu));
+        tg_answerCb($cb["id"]); return;
+      }
+      if ($action==="rename"){
+        $db["pending_admin_inputs"][$fromId]=["mode"=>"rename","uid"=>$uid]; db_save($db);
+        tg_sendMessage($adminChat,"📝 نام جدید کاربر {$uid} را بنویسید.");
+        tg_answerCb($cb["id"],"منتظر نام…"); return;
+      }
+      if ($action==="ban"){
+        $uu["banned"]=true; db_save($db);
+        tg_sendMessage($uid,"🚫 متاسفانه دسترسی شما توسط مدیریت مسدود شد.");
+        tg_editMessageText($adminChat, $msgId, admin_user_summary($uid, $uu, $db), admin_user_kb($uid, $uu));
+        tg_answerCb($cb["id"], "کاربر بن شد."); return;
+      }
+      if ($action==="unban"){
+        $uu["banned"]=false; db_save($db);
+        tg_sendMessage($uid,"✅ دسترسی شما توسط مدیریت آزاد شد.");
+        tg_editMessageText($adminChat, $msgId, admin_user_summary($uid, $uu, $db), admin_user_kb($uid, $uu));
+        tg_answerCb($cb["id"], "بن کاربر رفع شد."); return;
+      }
+      if ($action==="unlock"){
+        $uu["lock_until"]=0; db_save($db);
+        tg_sendMessage($uid,"🔓 محدودیت زمانی (ددلاین) شما توسط پشتیبانی برداشته شد. می‌توانی به کارت ادامه دهی.");
+        tg_editMessageText($adminChat, $msgId, admin_user_summary($uid, $uu, $db), admin_user_kb($uid, $uu));
+        tg_answerCb($cb["id"],"محدودیت کاربر رفع شد."); return;
+      }
+      if ($action === "manage_free") {
+          $course_id = 1;
+          $progress = get_user_course_progress($db, $uid, $course_id);
+          $step = ($progress['progress'] ?? -1);
+          $total_steps = count(get_course_by_id($db, 1)['content'] ?? []);
+          $kb_rows = [];
+          $kb_rows[] = [btn("▶️ ارسال مرحله بعدی به کاربر", "au:sendnext:{$uid}:{$course_id}")];
+          $kb_rows[] = [btn("✅ تکمیل مرحله فعلی", "au:completestep:{$uid}:{$course_id}"), btn("⏪ بازگرداندن به مرحله قبل", "au:revertstep:{$uid}:{$course_id}")];
+          $kb_rows[] = [btn("↩️ بازگشت به پنل کاربر", "au:info:{$uid}")];
+          tg_editMessageText($adminChat, $msgId, "🎓 مدیریت دوره رایگان برای کاربر {$uid}\nوضعیت فعلی: مرحله ".($step+1)." از {$total_steps}", kb($kb_rows));
+          tg_answerCb($cb["id"]); return;
+      }
+      if ($action === "sendnext") {
+          $course_id = (int)$arg1;
+          $progress = get_user_course_progress($db, $uid, $course_id);
+          $next_step = ($progress['progress'] ?? -1) + 1;
+          send_course_step($db, $uid, $course_id, $next_step);
+          tg_answerCb($cb["id"], "مرحله بعدی برای کاربر ارسال شد."); return;
+      }
+      if ($action === "completestep") {
+          $course_id = (int)$arg1;
+          if (!isset($db['user_courses'][$uid][$course_id])) $db['user_courses'][$uid][$course_id] = ['status'=>'active', 'progress'=>-1];
+          $db['user_courses'][$uid][$course_id]['progress']++;
+          db_save($db);
+          tg_answerCb($cb["id"], "مرحله با موفقیت تکمیل شد.");
+          tg_editMessageText($adminChat, $msgId, "وضعیت کاربر {$uid} به‌روز شد.\n".admin_user_summary($uid,$uu, $db), admin_user_kb($uid, $uu));
+          return;
+      }
+      if ($action === "revertstep") {
+          $course_id = (int)$arg1;
+          if (isset($db['user_courses'][$uid][$course_id]) && $db['user_courses'][$uid][$course_id]['progress'] > -1) {
+              $db['user_courses'][$uid][$course_id]['progress']--;
+          }
+          db_save($db);
+          tg_answerCb($cb["id"], "مرحله بازگردانده شد.");
+          tg_editMessageText($adminChat, $msgId, "وضعیت کاربر {$uid} به‌روز شد.\n".admin_user_summary($uid,$uu, $db), admin_user_kb($uid, $uu));
+          return;
+      }
+      if ($action==="sub_menu"){
+        $cur = format_sub_status($db, $uid);
+        $rows = [
+          [ ["text"=>"❌ حذف اشتراک","callback_data"=>"au:sub:none:".$uid] ],
+          [ ["text"=>"۳ ماهه","callback_data"=>"au:sub:3m:".$uid], ["text"=>"۶ ماهه","callback_data"=>"au:sub:6m:".$uid], ["text"=>"۱۲ ماهه","callback_data"=>"au:sub:12m:".$uid] ],
+          [ ["text"=>"↩️ بازگشت","callback_data"=>"au:info:".$uid] ]
+        ];
+        tg_editMessageText($adminChat, $msgId, "👑 اشتراک فعلی: {$cur}\n\nیک پلن جدید برای کاربر {$uid} انتخاب کن:", json_encode(["inline_keyboard"=>$rows], JSON_UNESCAPED_UNICODE));
+        tg_answerCb($cb["id"]); return;
+      }
+      if ($action==="sub"){
+        $type = $arg1;
+        if(!isset($db["subscriptions"])) $db["subscriptions"]=[];
+        if($type==="none"){
+          unset($db["subscriptions"][$uid]);
+        } else {
+          $months = ["3m"=>3,"6m"=>6,"12m"=>12][$type] ?? 0;
+          if ($months>0){
+            $exp = strtotime("+{$months} months");
+            $db["subscriptions"][$uid] = ["type"=>$type, "expires_at"=>$exp];
+          }
+        }
+        db_save($db);
+        $uu_refreshed = &user($db, $uid); // Re-fetch user data
+        tg_editMessageText($adminChat, $msgId, "✅ اشتراک کاربر ".$uid." به‌روزرسانی شد.\n".admin_user_summary($uid,$uu_refreshed, $db), admin_user_kb($uid, $uu_refreshed));
+        tg_answerCb($cb["id"],"انجام شد"); return;
+      }
+    }
+
+    if (strpos($data, "support_reply:")===0) {
+      $parts = explode(":", $data);
+      $userId = intval($parts[1] ?? 0);
+      if ($userId<=0) { tg_answerCb($cb["id"], "شناسه نامعتبر"); return; }
+      $db["pending_support_replies"][$fromId] = ["user_id"=>$userId]; db_save($db);
+      tg_sendMessage($adminChat, "✍️ پاسخ خود را برای کاربر {$userId} بفرستید. می‌توانید متن، عکس، فیلم یا هر فایل دیگری ارسال کنید.");
+      tg_answerCb($cb["id"], "منتظر پیام شما…"); return;
+    }
+    
+    // Panel Callbacks
+    if (strpos($data, "ap:")===0) {
+        $data_parts = explode(":", $data);
+        $action = $data_parts[1] ?? 'panel_main';
+
+        if ($action === "noop") { tg_answerCb($cb["id"]); return; }
+
+        if ($action === "panel_main" || $action === "stats") {
+          tg_answerCb($cb["id"], ($action === "stats" ? "آمار تازه‌سازی شد" : ""));
+          $all = $db["users"] ?? []; $total = count($all); $todayStart = strtotime('today'); $today = 0;
+          foreach($all as $id=>$uu){ if( (int)($uu["created_at"]??0) >= $todayStart ) $today++; }
+          $pendingExCount = count($db["pending_exercises"] ?? []); 
+          $pendingRecCount = count($db["pending_receipts"] ?? []); 
+          $pendingBizCount = count(array_filter($db["business_automation_requests"] ?? [], fn($r) => $r['status'] === 'pending'));
+          $openTickets  = count($db["support_open"] ?? []);
+          $msg = "🛠️ <b>پنل مدیریت ATB</b> — نسخه ".ATB_VERSION."\n\n". "👥 کل کاربران: <b>{$total}</b> | امروز: <b>{$today}</b>\n". "⏳ تمرین‌های در صف: <b>{$pendingExCount}</b>\n". "🧾 رسیدهای در صف: <b>{$pendingRecCount}</b>\n". "💡 درخواست‌های هوشمندسازی: <b>{$pendingBizCount}</b>\n". "📥 تیکت‌های پشتیبانیِ باز: <b>{$openTickets}</b>";
+          $kb = json_encode(["inline_keyboard"=>[
+            [ ["text"=>"🔄 تازه‌سازی آمار","callback_data"=>"ap:stats"] ],
+            [ ["text"=>"📊 خروجی کاربران","callback_data"=>"ap:export_menu"] ],
+            [ ["text"=>"⏳ بررسی تمرین‌ها","callback_data"=>"ap:pending_exercises"], ["text"=>"🧾 بررسی رسیدها","callback_data"=>"ap:pending_receipts"] ],
+            [ ["text"=>"💡 درخواست‌های هوشمندسازی","callback_data"=>"ap:biz_auto_requests"] ],
+            [ ["text"=>"📥 تیکت‌های باز","callback_data"=>"ap:support_open"] ],
+            [ ["text"=>"📚 مدیریت دوره‌ها", "callback_data"=>"ap:manage_courses"], ["text"=>"👑 مدیریت اشتراک‌ها","callback_data"=>"ap:subs_info"] ],
+            [ ["text"=>"📢 پیام همگانی","callback_data"=>"ap:broadcast"] ],
+            [ ["text"=>"🧰 ابزارک", "callback_data"=>"ap:manage_toolkit"], ["text"=>"🖼️ رسانه استارت", "callback_data"=>"ap:manage_start_media"] ],
+            [ ["text"=>"💳 کارت بانکی","callback_data"=>"ap:set_vip_card"] ],
+            [ ["text"=>"📖 راهنمای دستورات","callback_data"=>"ap:commands"] ]
+          ]], JSON_UNESCAPED_UNICODE);
+          tg_editMessageText($adminChat, $msgId, $msg, $kb);
+          return;
+        }
+        if ($action === "commands"){
+          tg_editMessageText($adminChat, $msgId, admin_commands_text(), kb([[btn("↩️ بازگشت به پنل اصلی","ap:panel_main")]]));
+          tg_answerCb($cb["id"]); return;
+        }
+        if ($action === "export_menu") {
+            $kb = kb([
+                [btn("خروجی کامل CSV", "ap:export_request:full:all"), btn("فقط شماره‌ها", "ap:export_request:phones:all")],
+                [btn("فیلتر: همه", "ap:noop")],
+                [btn("خروجی کامل (امروز)", "ap:export_request:full:today"), btn("شماره‌ها (امروز)", "ap:export_request:phones:today")],
+                [btn("خروجی کامل (۷ روز اخیر)", "ap:export_request:full:7days"), btn("شماره‌ها (۷ روز اخیر)", "ap:export_request:phones:7days")],
+                [btn("↩️ بازگشت به پنل اصلی", "ap:panel_main")]
+            ]);
+            tg_editMessageText($adminChat, $msgId, "📊 <b>خروجی کاربران</b>\n\nلطفاً نوع خروجی و فیلتر زمانی مورد نظر خود را انتخاب کنید:", $kb);
+            tg_answerCb($cb["id"]);
+            return;
+        }
+        if ($action === "export_request") {
+            tg_answerCb($cb["id"], "در حال آماده‌سازی خروجی...");
+            $type = $data_parts[2] ?? 'full';
+            $filter = $data_parts[3] ?? 'all';
+            
+            $time_limit = 0;
+            if ($filter === 'today') {
+                $time_limit = strtotime('today');
+            } elseif ($filter === '7days') {
+                $time_limit = strtotime('-7 days');
+            }
+
+            $lines = [];
+            $users = array_filter($db["users"], fn($u) => ($u["created_at"] ?? 0) >= $time_limit);
+
+            if ($type === "full") {
+                $lines[] = "UserID,Name,Phone,Job,AI Level,Register Date";
+                foreach($users as $uid => $u_data) {
+                    $name = '"' . str_replace('"', '""', $u_data["name"] ?? '') . '"';
+                    $job = '"' . str_replace('"', '""', $u_data["job"] ?? '') . '"';
+                    $phone = $u_data['phone'] ?? '';
+                    $ai = $u_data['ai'] ?? '';
+                    $date = to_jalali($u_data["created_at"] ?? 0, 'Y-m-d H:i');
+                    $lines[] = "{$uid},{$name},{$phone},{$job},{$ai},{$date}";
+                }
+            } else { // phones
+                foreach($users as $uid => $u_data) {
+                    if (!empty($u_data["phone"])) {
+                        $lines[] = $u_data["phone"];
+                    }
+                }
+            }
+            tg_sendMessage($adminChat, "✅ خروجی شما با فیلتر «{$filter}» آماده شد:");
+            send_lines_in_chunks($adminChat, $lines);
+            return;
+        }
+        if ($action === "pending_exercises") {
+          $items = $db["pending_exercises"] ?? [];
+          if (empty($items)) { tg_sendMessage($adminChat, "هیچ تمرینی در صف انتظار نیست."); tg_answerCb($cb["id"]); return; }
+          tg_answerCb($cb["id"], "در حال ارسال تمرین‌های در صف...");
+          foreach ($items as $it) {
+              $uid = $it["user_id"];
+              $mid = $it["orig_mid"] ?? null;
+              if ($mid) { tg_forwardMessage($adminChat, $uid, $mid); }
+              $uu = $db["users"][$uid] ?? null;
+              $course = get_course_by_id($db, $it['course_id']);
+              $course_title = $course['title'] ?? 'نامشخص';
+              $humanStep = $it["step"] + 1;
+              $info = "📝 <b>تمرین — {$course_title} (مرحله {$humanStep})</b>\n"
+                    . "👤 کاربر: <a href=\"tg://user?id={$uid}\">".$uid."</a> | ".($uu["name"]??'-');
+              tg_sendMessage($adminChat, $info, admin_exercise_kb($uid, $it['course_id'], $it['step']));
+              usleep(300000); // prevent flood
+          }
+          return;
+        }
+        if ($action === "pending_receipts") {
+          $items = $db["pending_receipts"] ?? [];
+          if (empty($items)) { tg_sendMessage($adminChat, "هیچ رسیدی در صف انتظار نیست."); tg_answerCb($cb["id"]); return; }
+          tg_answerCb($cb["id"], "در حال ارسال رسیدهای در صف...");
+          foreach ($items as $it) {
+              $uid = $it["user_id"];
+              $mid = $it["orig_mid"] ?? null;
+              if ($mid) { tg_forwardMessage($adminChat, $uid, $mid); }
+              $uu = $db["users"][$uid] ?? null;
+              $course = get_course_by_id($db, $it['course_id']);
+              $course_title = $course['title'] ?? 'نامشخص';
+              $info = "🧾 <b>رسید برای دوره: {$course_title}</b>\n"
+                    . "👤 کاربر: <a href=\"tg://user?id={$uid}\">".$uid."</a> | ".($uu["name"]??'-');
+              tg_sendMessage($adminChat, $info, admin_receipt_kb($uid, $it['course_id']));
+              usleep(300000); // prevent flood
+          }
+          return;
+        }
+        if ($action === "biz_auto_requests") {
+            tg_answerCb($cb["id"]);
+            $requests = array_reverse(array_filter($db["business_automation_requests"] ?? [], fn($r) => $r['status'] === 'pending'));
+            if (empty($requests)) {
+                tg_editMessageText($adminChat, $msgId, "💡 هیچ درخواست هوشمندسازی جدیدی وجود ندارد.", kb([[btn("↩️ بازگشت", "ap:panel_main")]]));
+                return;
+            }
+            tg_editMessageText($adminChat, $msgId, "💡 لیست درخواست‌های در انتظار:", kb([[btn("↩️ بازگشت", "ap:panel_main")]]));
+            $counter = 0;
+            foreach($requests as $req) {
+                $uid = $req['user_id'];
+                $user_info = $db['users'][$uid] ?? null;
+                $name = $user_info['name'] ?? 'ناشناس';
+                $time = to_jalali($req['time']);
+                $summary_text = "<b>درخواست از {$name}</b> (<code>{$uid}</code>)\nدر تاریخ: {$time}\nزمینه: ".($req['data']['q1'] ?? '—');
+                $kb = kb([[ btn("👁️ مشاهده کامل", "ap:biz_view:{$req['id']}"), btn("✅ انجام شد", "ap:biz_done:{$req['id']}") ]]);
+                tg_sendMessage($adminChat, $summary_text, $kb);
+                usleep(300000);
+                $counter++;
+                if ($counter >= 10) {
+                     tg_sendMessage($adminChat, "⚠️ فقط ۱۰ درخواست آخر نمایش داده شد.");
+                     break;
+                }
+            }
+            return;
+        }
+        if (strpos($data, "ap:biz_view:") === 0) {
+            $req_id = explode(":", $data)[2];
+            $request = null;
+            foreach($db['business_automation_requests'] as $req) { if ($req['id'] === $req_id) { $request = $req; break; } }
+            if(!$request) { tg_answerCb($cb['id'], "درخواست یافت نشد."); return; }
+            $uid = $request['user_id'];
+            $user_info = $db['users'][$uid] ?? null;
+            $answers = $request['data'];
+            $summary = "💡 <b>جزئیات درخواست هوشمندسازی</b>\n\n"
+                       . "👤 کاربر: <a href='tg://user?id={$uid}'>{$uid}</a> | ".($user_info['name'] ?? 'ثبت نشده')."\n"
+                       . "<b>۱. زمینه فعالیت:</b> " . ($answers['q1'] ?? '—') . "\n"
+                       . "<b>۲. مشتریان هدف:</b> " . ($answers['q2'] ?? '—') . "\n"
+                       . "<b>۳. بزرگ‌ترین چالش:</b> " . ($answers['q3'] ?? '—') . "\n"
+                       . "<b>۴. آدرس‌ها:</b> " . ($answers['q4'] ?? '—') . "\n"
+                       . "<b>۵. اطلاعات تماس:</b> " . ($answers['q5'] ?? '—') . "\n\n"
+                       . "#{$req_id}";
+            tg_editMessageText($adminChat, $msgId, $summary, kb([[ btn("✅ انجام شد", "ap:biz_done:{$req_id}"), btn("↩️ بازگشت", "ap:biz_auto_requests")]]));
+            return;
+        }
+        if (strpos($data, "ap:biz_done:") === 0) {
+            $req_id = explode(":", $data)[2];
+            foreach($db['business_automation_requests'] as $index => &$req) {
+                if ($req['id'] === $req_id) {
+                    $req['status'] = 'done';
+                    break;
+                }
+            }
+            db_save($db);
+            tg_editMessageText($adminChat, $msgId, "✅ درخواست #{$req_id} به عنوان «انجام شده» علامت‌گذاری شد.");
+            tg_answerCb($cb["id"], "انجام شد.");
+            return;
+        }
+        if ($action === "support_open") {
+            tg_answerCb($cb["id"]);
+            $tickets = array_reverse($db["support_open"] ?? []);
+            if (empty($tickets)) {
+                tg_editMessageText($adminChat, $msgId, "📥 هیچ تیکت بازی وجود ندارد.", kb([[btn("↩️ بازگشت", "ap:panel_main")]]));
+                return;
+            }
+            tg_editMessageText($adminChat, $msgId, "📥 لیست تیکت‌های باز:", kb([[btn("↩️ بازگشت", "ap:panel_main")]]));
+            foreach($tickets as $ticket) {
+                $uid = $ticket['user_id'];
+                $user_info = $db['users'][$uid] ?? null;
+                $name = $user_info['name'] ?? 'ناشناس';
+                $time = to_jalali($ticket['time']);
+                $last_text = mb_substr($ticket['last_text'], 0, 50);
+                if(mb_strlen($ticket['last_text']) > 50) $last_text .= '...';
+                
+                $summary_text = "<b>تیکت از {$name}</b> (<code>{$uid}</code>)\nآخرین پیام: {$time}\n<i>{$last_text}</i>";
+                tg_sendMessage($adminChat, $summary_text, admin_support_kb($uid));
+                usleep(300000);
+            }
+            return;
+        }
+        if ($action === "broadcast") {
+            $db["pending_broadcast"] = ["admin_id" => $fromId, "message" => null];
+            db_save($db);
+            tg_sendMessage($adminChat, "📢 <b>ارسال پیام همگانی</b>\n\nلطفاً پیامی که می‌خواهید به همه کاربران ارسال شود را بفرستید. (متن، عکس، ویدئو و...)", kb([[btn("❌ لغو عملیات", "ap:broadcast_cancel")]]));
+            tg_answerCb($cb["id"]); return;
+        }
+        if ($action === "broadcast_cancel") {
+            $db["pending_broadcast"] = null;
+            db_save($db);
+            tg_editMessageText($adminChat, $msgId, "عملیات ارسال پیام همگانی لغو شد.");
+            tg_answerCb($cb["id"]); return;
+        }
+        if ($action === "broadcast_confirm") {
+            $broadcast_data = $db["pending_broadcast"];
+            if (!$broadcast_data || !$broadcast_data["message"]) {
+                tg_editMessageText($adminChat, $msgId, "خطا: پیامی برای ارسال یافت نشد.");
+                return;
+            }
+            
+            tg_answerCb($cb["id"], "شروع ارسال...");
+            tg_editMessageText($adminChat, $msgId, "در حال ارسال پیام... لطفاً صبر کنید.");
+            
+            $all_users = array_keys($db["users"]);
+            $total_users = count($all_users);
+            $sent_count = 0;
+            $failed_count = 0;
+            
+            foreach ($all_users as $user_id) {
+                $res = tg_copyMessage($user_id, $broadcast_data["message"]["chat"]["id"], $broadcast_data["message"]["message_id"]);
+                if ($res && $res['ok']) {
+                    $sent_count++;
+                } else {
+                    $failed_count++;
+                }
+                if (($sent_count + $failed_count) % 20 == 0) { // Update admin every 20 users
+                    tg_editMessageText($adminChat, $msgId, "در حال ارسال... ({$sent_count}/{$total_users})");
+                }
+                usleep(300000); // 300ms delay
+            }
+            
+            tg_editMessageText($adminChat, $msgId, "✅ <b>ارسال پیام همگانی تکمیل شد!</b>\n\n- موفق: {$sent_count}\n- ناموفق: {$failed_count}");
+            $db["pending_broadcast"] = null;
+            db_save($db);
+            return;
+        }
+        if ($action === "manage_courses") {
+          $rows = [];
+          foreach($db['courses'] as $course) {
+              $price = $course['price'] > 0 ? number_format($course['price']).' ت' : 'رایگان';
+              $label = "{$course['title']} ({$price})";
+              $rows[] = [btn($label, "ap:edit_course:{$course['id']}")];
+          }
+          $rows[] = [btn("➕ افزودن دوره جدید", "ap:add_course")];
+          $rows[] = [btn("↩️ بازگشت به پنل اصلی", "ap:panel_main")];
+          tg_editMessageText($adminChat, $msgId, "📚 <b>مدیریت دوره‌ها</b>\n\nبرای ویرایش یا حذف یک دوره، آن را انتخاب کنید.", kb($rows));
+          tg_answerCb($cb["id"]); return;
+        }
+        if (strpos($data, "ap:edit_course:") === 0) {
+            $course_id = (int)$data_parts[2];
+            $course = get_course_by_id($db, $course_id);
+            if (!$course) { tg_answerCb($cb['id'], 'دوره یافت نشد'); return; }
+
+            $price_text = $course['price'] > 0 ? number_format($course['price']).' تومان' : 'رایگان';
+            $text = "⚙️ <b>ویرایش دوره: {$course['title']}</b>\n\n"
+                  . "<b>قیمت:</b> {$price_text}\n"
+                  . "<b>توضیحات:</b> " . mb_substr($course['description'], 0, 150) . "...\n"
+                  . "<b>تعداد مراحل:</b> " . count($course['content']);
+
+            $kb = kb([
+                [btn("✏️ ویرایش عنوان", "ap:set_course_prop:{$course_id}:title"), btn("✏️ ویرایش توضیحات", "ap:set_course_prop:{$course_id}:description")],
+                [btn("✏️ ویرایش قیمت", "ap:set_course_prop:{$course_id}:price"), btn("📚 مدیریت مراحل", "ap:manage_steps:{$course_id}")],
+                [btn("🗑️ حذف کامل این دوره", "ap:del_course_confirm:{$course_id}")],
+                [btn("↩️ بازگشت به لیست دوره‌ها", "ap:manage_courses")]
+            ]);
+            tg_editMessageText($adminChat, $msgId, $text, $kb);
+            tg_answerCb($cb["id"]);
+            return;
+        }
+        if (strpos($data, "ap:manage_steps:") === 0) {
+            $course_id = (int)$data_parts[2];
+            $course = get_course_by_id($db, $course_id);
+            if (!$course) { tg_answerCb($cb['id'], 'دوره یافت نشد'); return; }
+
+            $text = "📚 <b>مدیریت مراحل دوره: {$course['title']}</b>\n\n";
+            if (empty($course['content'])) {
+                $text .= "این دوره هنوز هیچ مرحله‌ای ندارد.";
+            } else {
+                foreach ($course['content'] as $index => $step) {
+                    $step_num = $index + 1;
+                    $caption_preview = mb_substr(trim($step['caption']), 0, 30);
+                    $text .= "<b>مرحله {$step_num}:</b> {$step['type']} - <i>{$caption_preview}...</i>\n";
+                }
+            }
+
+            $kb_rows = [];
+            if (!empty($course['content'])) {
+                $last_step_index = count($course['content']) - 1;
+                $kb_rows[] = [btn("🗑️ حذف آخرین مرحله", "ap:delete_step:{$course_id}:{$last_step_index}")];
+            }
+            $kb_rows[] = [btn("➕ افزودن مرحله جدید", "ap:add_step:{$course_id}")];
+            $kb_rows[] = [btn("↩️ بازگشت به ویرایش دوره", "ap:edit_course:{$course_id}")];
+
+            tg_editMessageText($adminChat, $msgId, $text, kb($kb_rows));
+            tg_answerCb($cb["id"]);
+            return;
+        }
+        if (strpos($data, "ap:set_course_prop:") === 0) {
+            $course_id = (int)$data_parts[2];
+            $prop = $data_parts[3];
+            $prop_map = ['title' => 'عنوان', 'description' => 'توضیحات', 'price' => 'قیمت'];
+            if (!isset($prop_map[$prop])) return;
+
+            $db["pending_admin_inputs"][$fromId] = ["mode" => "edit_course_{$prop}", "course_id" => $course_id];
+            db_save($db);
+            tg_sendMessage($adminChat, "لطفاً {$prop_map[$prop]} جدید را ارسال کنید.");
+            tg_answerCb($cb["id"]);
+            return;
+        }
+        if (strpos($data, "ap:add_step:") === 0) {
+             $course_id = (int)$data_parts[2];
+             $db["pending_admin_inputs"][$fromId] = ["mode" => "add_course_step", "course_id" => $course_id];
+             db_save($db);
+             tg_sendMessage($adminChat, "➕ <b>افزودن مرحله جدید</b>\n\nلطفاً ویدئو یا عکس مرحله جدید را فوروارد کنید. کپشن پیام به عنوان متن مرحله ذخیره خواهد شد.\n\nپس از ارسال تمام مراحل جدید، دستور /done را بفرستید.");
+             tg_answerCb($cb["id"]);
+             return;
+        }
+        if (strpos($data, "ap:delete_step:") === 0) {
+            $course_id = (int)$data_parts[2];
+            $step_index = (int)$data_parts[3];
+            foreach($db['courses'] as &$course) {
+                if ($course['id'] == $course_id) {
+                    if (isset($course['content'][$step_index])) {
+                        array_splice($course['content'], $step_index, 1);
+                        tg_answerCb($cb["id"], "✅ مرحله با موفقیت حذف شد.");
+                    } else {
+                        tg_answerCb($cb["id"], "⚠️ مرحله یافت نشد.");
+                    }
+                    break;
+                }
+            }
+            db_save($db);
+            // Auto-refresh the step management menu by re-sending the message
+            $data = "ap:manage_steps:" . $course_id; // Fake the data to re-trigger the handler
+        }
+        if (strpos($data, "ap:del_course_confirm:") === 0) {
+            $course_id = (int)$data_parts[2];
+            $course = get_course_by_id($db, $course_id);
+            if (!$course) { tg_answerCb($cb['id'], 'دوره یافت نشد'); return; }
+            tg_editMessageText($adminChat, $msgId, "آیا از حذف کامل دوره «{$course['title']}» مطمئن هستید؟ این عمل غیرقابل بازگشت است.", kb([
+                [btn(" بله، حذف کن", "ap:del_course:{$course_id}"), btn(" خیر، انصراف", "ap:edit_course:{$course_id}")]
+            ]));
+            tg_answerCb($cb["id"]);
+            return;
+        }
+        if (strpos($data, "ap:del_course:") === 0) {
+            $course_id = (int)$data_parts[2];
+            if ($course_id == 1) { // Prevent deleting free course
+                tg_answerCb($cb["id"], "⚠️ دوره مقدماتی قابل حذف نیست."); return;
+            }
+            $db['courses'] = array_values(array_filter($db['courses'], fn($c) => $c['id'] != $course_id));
+            db_save($db);
+            tg_answerCb($cb["id"], "دوره حذف شد ✅");
+            // Refresh main course menu
+            $data = "ap:manage_courses"; // Fake the data to re-trigger the handler
+        }
+
+        if ($action === "add_course") {
+          $db["pending_admin_inputs"][$fromId] = ["mode" => "course_title", "price" => 0, "content" => []];
+          db_save($db);
+          tg_sendMessage($adminChat, "▶️ <b>شروع فرآیند افزودن دوره جدید</b>\n\nلطفاً <b>عنوان دوره</b> را ارسال کنید.");
+          tg_answerCb($cb["id"]); return;
+        }
+        if($action === "set_vip_card"){
+          $db["await_set_vip_card"][$fromId] = true;
+          db_save($db);
+          tg_sendMessage($adminChat, "💳 لطفاً عکس جدید کارت بانکی برای پرداخت‌های VIP را ارسال کنید.");
+          tg_answerCb($cb["id"]); return;
+        }
+        if($action === "subs_info"){
+          $now = time();
+          $expiring_limit = $now + 7 * 24 * 3600;
+          $counts = ['active' => 0, 'expiring' => 0, 'expired' => 0, 'none' => count($db['users'])];
+
+          foreach($db['subscriptions'] as $uid => $sub) {
+              if (($sub["expires_at"] ?? 0) > $now) {
+                  $counts['active']++;
+                  if (($sub["expires_at"] ?? 0) < $expiring_limit) {
+                      $counts['expiring']++;
+                  }
+              } else {
+                  $counts['expired']++;
+              }
+          }
+          $counts['none'] -= count($db['subscriptions']);
+
+          $kb = kb([
+              [btn("✅ کاربران فعال ({$counts['active']})", "ap:subs:active")],
+              [btn("⌛️ در حال انقضا ({$counts['expiring']})", "ap:subs:expiring")],
+              [btn("❌ منقضی شده ({$counts['expired']})", "ap:subs:expired")],
+              [btn("➖ بدون اشتراک ({$counts['none']})", "ap:subs:none")],
+              [btn("↩️ بازگشت به پنل اصلی", "ap:panel_main")]
+          ]);
+          tg_editMessageText($adminChat, $msgId, "👑 <b>مدیریت اشتراک‌های VIP</b>\n\nکدام دسته از کاربران نمایش داده شوند؟", $kb);
+          tg_answerCb($cb["id"]); return;
+        }
+        if ($action === 'subs') {
+          $filter = $data_parts[2];
+          $now = time();
+          $expiring_limit = $now + 7 * 24 * 3600;
+          $lines = [];
+          $all_user_ids = array_keys($db['users']);
+          $subscribed_user_ids = array_keys($db['subscriptions'] ?? []);
+
+          if ($filter === 'none') {
+              $unsubscribed_ids = array_diff($all_user_ids, $subscribed_user_ids);
+              foreach($unsubscribed_ids as $uid){
+                  $user = $db["users"][$uid];
+                  $name = $user["name"] ?? "بی‌نام";
+                  $lines[] = "• <code>{$uid}</code> | {$name}";
+              }
+          } else {
+              foreach($db['subscriptions'] as $uid => $sub) {
+                  if (!isset($db['users'][$uid])) continue;
+                  $user = $db['users'][$uid];
+                  $name = $user["name"] ?? "بی‌نام";
+                  $exp_date_str = to_jalali($sub["expires_at"]);
+                  
+                  if ($filter === 'active' && ($sub["expires_at"] ?? 0) > $now) {
+                      $lines[] = "• <code>{$uid}</code> | {$name} | تا: {$exp_date_str}";
+                  } elseif ($filter === 'expiring' && ($sub["expires_at"] ?? 0) > $now && ($sub["expires_at"] ?? 0) < $expiring_limit) {
+                      $lines[] = "• <code>{$uid}</code> | {$name} | تا: {$exp_date_str}";
+                  } elseif ($filter === 'expired' && ($sub["expires_at"] ?? 0) <= $now) {
+                      $lines[] = "• <code>{$uid}</code> | {$name} | در: {$exp_date_str}";
+                  }
+              }
+          }
+          
+          $title_map = ['active' => '✅ کاربران با اشتراک فعال', 'expiring' => '⌛️ اشتراک‌های در حال انقضا', 'expired' => '❌ اشتراک‌های منقضی شده', 'none' => '➖ کاربران بدون اشتراک'];
+          $title = $title_map[$filter] ?? 'لیست کاربران';
+          tg_sendMessage($adminChat, "<b>{$title}:</b>");
+          send_lines_in_chunks($adminChat, $lines);
+          tg_answerCb($cb["id"]); return;
+        }
+    }
+    
+    // Exercise approval
+    if (strpos($data, "admin_ex_ok:") === 0 || strpos($data, "admin_ex_no:") === 0) {
+        list(, $userId, $courseId, $step) = explode(":", $data);
+        $userId = (int)$userId; $courseId = (int)$courseId; $step = (int)$step;
+        
+        if (!isset($db["users"][$userId])) { tg_answerCb($cb["id"], "کاربر پیدا نشد."); return; }
+        $uu_ex =& user($db, $userId);
+        if (strpos($data, "admin_ex_ok:") === 0) {
+            remove_pending_exercise($db, $userId, $courseId, $step);
+            if (!isset($db['user_courses'][$userId][$courseId])) $db['user_courses'][$userId][$courseId] = ['status'=>'active', 'progress'=>-1];
+            $db['user_courses'][$userId][$courseId]['progress'] = $step;
+            
+            $course = get_course_by_id($db, $courseId);
+            $next_step = $step + 1;
+            if ($next_step < count($course['content'])) {
+                tg_sendMessage($userId, "✅ تمرین شما تایید شد! برویم سراغ مرحله بعد.");
+                send_course_step($db, $userId, $courseId, $next_step);
+            } else {
+                $db['user_courses'][$userId][$courseId]['status'] = 'completed';
+                $uu_ex['state'] = 'completed_free';
+                $finalText = "🎉 <b>تبریک!</b>\nدوره «{$course['title']}» را با موفقیت تمام کردی.\n\n"
+                           . "به پاس تلاش شما، از الان عضو کانال خصوصی <b>ATB Club</b> هستی. روی دکمه زیر بزن و وارد شو:";
+                $finalKb = kb([[["text" => "🚪 ورود به کلاب ATB", "url" => $GLOBALS["PRIVATE_CHANNEL_INVITE"]]]]);
+                tg_sendMessage($userId, $finalText, $finalKb);
+                // Referral Payout Logic
+                if ($courseId == 1 && !empty($uu_ex['referrer_id']) && empty($uu_ex['referral_paid_out'])) {
+                    $referrer_id = $uu_ex['referrer_id'];
+                    if (isset($db['users'][$referrer_id])) {
+                        global $REFERRAL_REWARD_AMOUNT, $REFERRAL_REWARD_TEXT;
+                        $ref_user =& user($db, $referrer_id);
+                        $ref_user['referral_balance_usd'] = ($ref_user['referral_balance_usd'] ?? 0) + $REFERRAL_REWARD_AMOUNT;
+                        tg_sendMessage($referrer_id, "خبر عالی! یکی از دوستانی که دعوت کرده بودی، آموزش مقدماتی را تمام کرد.\nمبلغ <b>" . $REFERRAL_REWARD_TEXT . "</b> به کیف پول شما اضافه شد.\nموجودی فعلی: " . ($ref_user['referral_balance_usd']) . " دلار");
+                        $uu_ex['referral_paid_out'] = true; // Flag to prevent double payout
+                    }
+                }
+            }
+            tg_editMessageText($adminChat, $msgId, "✅ تمرین کاربر {$userId} تایید شد.");
+            tg_answerCb($cb["id"]);
+            db_save($db); return;
+        }
+
+        if (strpos($data, "admin_ex_no:") === 0) {
+            $db["pending_rejects"][$fromId] = ["user_id"=>$userId, "course_id"=>$courseId, "step"=>$step];
+            remove_pending_exercise($db, $userId, $courseId, $step);
+            db_save($db);
+            $hs = $step + 1;
+            tg_editMessageText($adminChat, $msgId, "❌ رد تمرین مرحله {$hs} انتخاب شد.\nحالا لطفاً <b>دلیل رد کردن</b> را در یک پیام جدید بفرستید تا برای کاربر ارسال شود.");
+            tg_answerCb($cb["id"], "منتظر دلیل…"); return;
+        }
+    }
+    
+    // Receipt approval
+    if (strpos($data, "admin_receipt_ok:") === 0 || strpos($data, "admin_receipt_no:") === 0) {
+        list(, $userId, $courseId) = explode(":", $data);
+        $userId = (int)$userId; $courseId = (int)$courseId;
+        
+        if (!isset($db["users"][$userId])) { tg_answerCb($cb["id"], "کاربر پیدا نشد."); return; }
+        
+        // Remove from pending list
+        $db['pending_receipts'] = array_values(array_filter($db['pending_receipts'], fn($it) => !($it['user_id'] == $userId && $it['course_id'] == $courseId)));
+        
+        if (strpos($data, "admin_receipt_ok:") === 0) {
+            $db['user_courses'][$userId][$courseId] = ['status'=>'active', 'progress'=>-1, 'receipt_file_id'=>'approved'];
+            $course = get_course_by_id($db, $courseId);
+            tg_sendMessage($userId, "✅ پرداخت شما برای دوره «{$course['title']}» تایید شد!\n\nبرای شروع دوره روی دکمه زیر کلیک کنید.", kb([[btn("🚀 شروع دوره", "start_paid_course:{$courseId}")]]) );
+            tg_editMessageText($adminChat, $msgId, "✅ رسید کاربر {$userId} برای دوره «{$course['title']}» تایید شد.");
+            tg_answerCb($cb["id"]);
+        } else { // admin_receipt_no
+            $course = get_course_by_id($db, $courseId);
+            tg_sendMessage($userId, "❌ متاسفانه پرداخت شما برای دوره «{$course['title']}» رد شد.\n\nلطفاً با پشتیبانی تماس بگیرید تا مشکل را بررسی کنیم.", only_support_kb());
+            tg_editMessageText($adminChat, $msgId, "❌ رسید کاربر {$userId} برای دوره «{$course['title']}» رد شد و به او اطلاع داده شد.");
+            tg_answerCb($cb["id"]);
+        }
+
+        db_save($db);
+        return;
+    }
+
+    if (strpos($data, "admin_vip_ok:") === 0) {
+        list(, $userId, $sub_type) = explode(":", $data);
+        $userId = intval($userId);
+
+        if (isset($db["users"][$userId])) {
+            $user_vip =& user($db, $userId);
+            $user_vip["state"] = "idle";
+            
+            $months_map = ["3m" => 3, "6m" => 6, "12m" => 12];
+            $months = $months_map[$sub_type] ?? 12; // Default to 12 if something goes wrong
+            
+            if(!isset($db["subscriptions"])) $db["subscriptions"] = [];
+            $db["subscriptions"][$userId] = ["type"=>$sub_type, "expires_at"=>strtotime("+{$months} months")];
+            db_save($db);
+            
+            $kb_vip = json_encode(["inline_keyboard" => [[["text" => "🔑 ورود به کانال VIP", "url" => $GLOBALS["VIP_PRIVATE_INVITE"]]]]], JSON_UNESCAPED_UNICODE);
+            tg_sendMessage($userId, "✅ پرداخت شما تایید شد! به جمع اعضای ویژه ATB Club خوش آمدید.\n\n👇 با لینک زیر وارد کانال اختصاصی شوید:", $kb_vip);
+            tg_editMessageText($adminChat, $msgId, "✅ اشتراک VIP ({$months} ماهه) برای کاربر {$userId} تایید و فعال شد.");
+            tg_answerCb($cb["id"]);
+        } else {
+            tg_answerCb($cb["id"], "کاربر یافت نشد.");
+        }
+        return;
+    }
+  }
+
+  if ($data === "support_contact") {
+    $userForRegAndRestrict["state"] = "support_await_msg";
+    db_save($db);
+    tg_sendMessage($chat, "🆘 آماده شنیدن سوال یا مشکل شما هستیم.\n\nهر چیزی که هست را اینجا بنویسید یا فایل/عکس بفرستید تا سریع بررسی کنیم.", rkb([[["text"=>"⬅️ بازگشت"]]]));
+    tg_answerCb($cb["id"]); return;
+  }
+  
+  if (strpos($data, "view_course:") === 0) {
+      $course_id = (int)substr($data, strlen("view_course:"));
+      $course = get_course_by_id($db, $course_id);
+      if (!$course) return;
+      
+      $price = number_format($course['price']);
+      $msg = "<b>{$course['title']}</b>\n\n"
+           . "{$course['description']}\n\n"
+           . "<b>قیمت:</b> {$price} تومان";
+      tg_sendMessage($chat, $msg, kb([[btn("💳 خرید این دوره", "buy_course:{$course['id']}")], [btn("⬅️ بازگشت به لیست دوره‌ها", "paid_courses")]]));
+      tg_answerCb($cb["id"]);
+      return;
+  }
+
+  if (strpos($data, "buy_course:") === 0) {
+      $course_id = (int)substr($data, strlen("buy_course:"));
+      $course = get_course_by_id($db, $course_id);
+      if (!$course) return;
+      
+      $card_file_id = $db["vip_card"]["file_id"] ?? null;
+      $price = number_format($course['price']);
+      $msg = "برای خرید دوره «{$course['title']}»، لطفاً مبلغ <b>{$price} تومان</b> را به شماره کارت موجود در تصویر زیر واریز کرده و سپس از دکمه «ارسال رسید» استفاده کنید.";
+      if ($card_file_id) {
+          tg_sendPhoto($chat, $card_file_id, $msg, kb([[btn("📎 ارسال عکس رسید", "send_receipt:{$course['id']}")], [btn("⬅️ بازگشت", "paid_courses")]]));
+      } else {
+          $msg .= "\n\nℹ️ <i>شماره کارت توسط ادمین تنظیم نشده است. لطفاً به پشتیبانی پیام دهید.</i>";
+          tg_sendMessage($chat, $msg, kb([[btn("⬅️ بازگشت", "paid_courses")]]));
+      }
+      tg_answerCb($cb["id"]);
+      return;
+  }
+  
+  if (strpos($data, "send_receipt:") === 0) {
+      $course_id = (int)substr($data, strlen("send_receipt:"));
+      $userForRegAndRestrict["state"] = "await_receipt_{$course_id}";
+      db_save($db);
+      tg_sendMessage($chat, "📸 لطفاً <b>فقط عکس رسید پرداخت خود را</b> اینجا بفرستید.", kb([[btn("⬅️ انصراف", "paid_courses")]]));
+      tg_answerCb($cb["id"]);
+      return;
+  }
+
+  if (strpos($data, "start_paid_course:") === 0) {
+      $course_id = (int)substr($data, strlen("start_paid_course:"));
+      $progress = get_user_course_progress($db, $chat, $course_id);
+      if ($progress['status'] !== 'active') {
+          tg_answerCb($cb["id"], "شما هنوز به این دوره دسترسی ندارید.");
+          return;
+      }
+      $next_step = ($progress['progress'] ?? -1) + 1;
+      send_course_step($db, $chat, $course_id, $next_step);
+      tg_answerCb($cb["id"]);
+      return;
+  }
+
+
+  tg_answerCb($cb["id"]); return;
+}
+/* ==== CB_HANDLER END =========================================== */
