@@ -1,0 +1,1 @@
+<?php require __DIR__.'/config.php'; header('Content-Type:text/plain; charset=UTF-8'); echo 'ATB Bot is up. Version='.ATB_VERSION."\n";

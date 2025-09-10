@@ -1,0 +1,1 @@
+<?php header('Content-Type:text/plain; charset=UTF-8'); $raw=file_get_contents('php://input');file_put_contents(__DIR__.'/logs/atb_log.txt','['.date('c').'] DIAG method='.( $_SERVER['REQUEST_METHOD']??'').' len='.strlen($raw).' ua='.($_SERVER['HTTP_USER_AGENT']??'')."\n", FILE_APPEND); echo "OK\n";

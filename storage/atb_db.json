@@ -1,0 +1,2173 @@
+{
+    "users": {
+        "971575241": {
+            "state": "completed",
+            "name": "محمدعلی رسولی",
+            "phone": "09123079406",
+            "job": "Ai",
+            "ai": "حرفه‌ای",
+            "progress": {
+                "v1": true,
+                "v2": true,
+                "v3": true
+            },
+            "created_at": 1755044540,
+            "watch_started_at": 1756886605,
+            "video_deadlines": {
+                "v1": 1757058729,
+                "v2": 1757059402,
+                "v3": 1757059405
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "7364798332": {
+            "state": "watch_v2",
+            "name": "فائزه نامور",
+            "phone": "09150811691",
+            "job": "مشاور و فروش طلا",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755044909,
+            "watch_started_at": 1755045537
+        },
+        "-1002827751730": {
+            "state": "idle",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755045002,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "97284925": {
+            "state": "await_ex_v1",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755085965,
+            "watch_started_at": 0
+        },
+        "577129801": {
+            "state": "idle",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755096804,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "1888247584": {
+            "state": "idle",
+            "name": "sadegh",
+            "phone": "09392866162",
+            "job": null,
+            "ai": "حرفه‌ای",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755101088,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            }
+        },
+        "8073702359": {
+            "state": "watch_v2",
+            "name": "علیرضا اکبرزاده",
+            "phone": "09029188735",
+            "job": "برق صنعت",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755104532,
+            "watch_started_at": 1756628771,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 1756801571,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "533439025": {
+            "state": "watch_v2",
+            "name": "مهدیه نیک پی",
+            "phone": "09225501808",
+            "job": "انلاین شاپ",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755105900,
+            "watch_started_at": 1755346993,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 1755519793,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "663159032": {
+            "state": "idle",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755106517,
+            "watch_started_at": 0
+        },
+        "8044588669": {
+            "state": "idle",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755106553,
+            "watch_started_at": 0
+        },
+        "492678573": {
+            "state": "completed",
+            "name": "امیر بکتاش برجسته",
+            "phone": "09391571272",
+            "job": "دانش اموز هنرستان کامپیوتر هستم",
+            "ai": "کمی",
+            "progress": {
+                "v1": true,
+                "v2": true,
+                "v3": true
+            },
+            "created_at": 1755107035,
+            "watch_started_at": 1755110664
+        },
+        "6083647749": {
+            "state": "watch_v1",
+            "name": "امید محمدی",
+            "phone": "09157883861",
+            "job": "یخچال ویترینی میفروشم",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755108532,
+            "watch_started_at": 1755108621
+        },
+        "618099561": {
+            "state": "watch_v1",
+            "name": "محمد عزیزی",
+            "phone": "09908353850",
+            "job": "آموزش گویندگی",
+            "ai": "کمی",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755109317,
+            "watch_started_at": 1755109357
+        },
+        "989123638": {
+            "state": "completed",
+            "name": "1_ یلدا ابراهیم زاده\n09387061500\nهیچی",
+            "phone": "09387061500",
+            "job": "ادمین",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": true,
+                "v3": true
+            },
+            "created_at": 1755111354,
+            "watch_started_at": 1755161440
+        },
+        "108361779": {
+            "state": "watch_v2",
+            "name": "پروين جعفري",
+            "phone": "09151760273",
+            "job": "فيشال و مراقبت پوست و مو",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755111377,
+            "watch_started_at": 1756987158,
+            "video_deadlines": {
+                "v1": 1757146215,
+                "v2": 1757159958,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "1773127935": {
+            "state": "collect_name",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755111903,
+            "watch_started_at": 0
+        },
+        "7666287001": {
+            "state": "await_phone",
+            "name": "لباس فروش",
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755112067,
+            "watch_started_at": 0
+        },
+        "7365904820": {
+            "state": "watch_v1",
+            "name": "دانیال باقری",
+            "phone": "09002920050",
+            "job": "گیم",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755112341,
+            "watch_started_at": 1755122168
+        },
+        "1085368074": {
+            "state": "watch_v1",
+            "name": "یکتا شادان",
+            "phone": "09017849912",
+            "job": "ثبت شرکت",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755112587,
+            "watch_started_at": 1755112720
+        },
+        "5493421438": {
+            "state": "watch_v1",
+            "name": "نازنین یوسفی",
+            "phone": "09962201597",
+            "job": "دیجیتال مارکتینگ_معلم",
+            "ai": "کمی",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755113040,
+            "watch_started_at": 1755113092
+        },
+        "7103461337": {
+            "state": "idle",
+            "name": "H.M",
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755114408,
+            "watch_started_at": 0
+        },
+        "233224692": {
+            "state": "completed",
+            "name": "عالیه پوستینی",
+            "phone": "09031580038",
+            "job": "لوازم جانبی موبایل",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": true,
+                "v3": true
+            },
+            "created_at": 1755116780,
+            "watch_started_at": 1755455737,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 1755511314,
+                "v3": 1755628537
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "927590756": {
+            "state": "watch_v1",
+            "name": "فاطمه یوسفی",
+            "phone": "09914673499",
+            "job": "قالبسازی",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755116811,
+            "watch_started_at": 1755116900
+        },
+        "7687232975": {
+            "state": "watch_v1",
+            "name": "حامد منفردی",
+            "phone": "09372680256",
+            "job": "اداره سایت",
+            "ai": "متوسط",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755118976,
+            "watch_started_at": 1755165835
+        },
+        "5179492151": {
+            "state": "watch_v2",
+            "name": "قاسم سلیمانی",
+            "phone": "09123820525",
+            "job": "رفیقبازی",
+            "ai": "حرفه‌ای",
+            "progress": {
+                "v1": true,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755121223,
+            "watch_started_at": 1755123968
+        },
+        "210904389": {
+            "state": "await_phone",
+            "name": "حسین داوری",
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755121553,
+            "watch_started_at": 0
+        },
+        "6497420443": {
+            "state": "watch_v2",
+            "name": "فاطمه توانا",
+            "phone": "09387423391",
+            "job": "فروش دستگاه کارتخوان",
+            "ai": "کمی",
+            "progress": {
+                "v1": true,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755124393,
+            "watch_started_at": 1755513400,
+            "video_deadlines": {
+                "v1": 1755667203,
+                "v2": 1755686200,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "6427496036": {
+            "state": "watch_v1",
+            "name": "مجتبی امانی",
+            "phone": "09368763202",
+            "job": "مهندسی پزشکی",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755125874,
+            "watch_started_at": 1755277972
+        },
+        "1726771733": {
+            "state": "collect_name",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755127224,
+            "watch_started_at": 0
+        },
+        "5137127390": {
+            "state": "await_phone",
+            "name": "هلیا قربانی",
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755131825,
+            "watch_started_at": 0
+        },
+        "7082850976": {
+            "state": "watch_v2",
+            "name": "مرضیه نقویان",
+            "phone": "09388521926",
+            "job": "هنر،نقاشی",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755143176,
+            "watch_started_at": 1755161436
+        },
+        "173582606": {
+            "state": "collect_name",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755150947,
+            "watch_started_at": 0
+        },
+        "643424123": {
+            "state": "watch_v2",
+            "name": "حکیمه درتومی",
+            "phone": "09053306570",
+            "job": "خیاطی شخصی دوز",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755151199,
+            "watch_started_at": 1755379571,
+            "video_deadlines": {
+                "v1": 1755549619,
+                "v2": 1755552371,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "251532669": {
+            "state": "idle",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755155240,
+            "watch_started_at": 0
+        },
+        "675114721": {
+            "state": "watch_v1",
+            "name": "سمیه رحیمی",
+            "phone": "09905259158",
+            "job": "آرایشگری",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755155836,
+            "watch_started_at": 1755156126
+        },
+        "1309141962": {
+            "state": "watch_v1",
+            "name": "سما‌ شاهی",
+            "phone": "09360365562",
+            "job": "زیبایی",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755157551,
+            "watch_started_at": 1755157626
+        },
+        "1172577725": {
+            "state": "watch_v1",
+            "name": "آمنه جعفری",
+            "phone": "09183559654",
+            "job": "وکیل",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755157560,
+            "watch_started_at": 1755157740
+        },
+        "129901524": {
+            "state": "completed",
+            "name": "منا کبریایی",
+            "phone": "09156163114",
+            "job": "فروشگاه لباس زنانه",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": true,
+                "v3": true
+            },
+            "created_at": 1755157676,
+            "watch_started_at": 1755176157
+        },
+        "105744970": {
+            "state": "collect_name",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755161087,
+            "watch_started_at": 0
+        },
+        "1016096473": {
+            "state": "watch_v1",
+            "name": "سمیه مجردی",
+            "phone": "09023546633",
+            "job": "ارایشگر",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755161698,
+            "watch_started_at": 1755161814
+        },
+        "544435908": {
+            "state": "idle",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755163490,
+            "watch_started_at": 0
+        },
+        "727193356": {
+            "state": "idle",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755186706,
+            "watch_started_at": 0
+        },
+        "6108307737": {
+            "state": "watch_v1",
+            "name": "مهدی قربان پور",
+            "phone": "09101128559",
+            "job": "خرید و فروش",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755189652,
+            "watch_started_at": 1755189735
+        },
+        "469422805": {
+            "state": "watch_v1",
+            "name": "محمد دستجردي",
+            "phone": "09361242184",
+            "job": "محصولات صنعت ساختمان",
+            "ai": "کمی",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755191456,
+            "watch_started_at": 1755191537
+        },
+        "96760737": {
+            "state": "watch_v1",
+            "name": "حسن افشار",
+            "phone": "09364419881",
+            "job": "بیکار",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755200685,
+            "watch_started_at": 1755958849,
+            "video_deadlines": {
+                "v1": 1756131649,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "1889855096": {
+            "state": "await_phone",
+            "name": "یونس سعادتی",
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755217321,
+            "watch_started_at": 0
+        },
+        "161912252": {
+            "state": "watch_v3",
+            "name": "کبری نوروزپور",
+            "phone": "09361226308",
+            "job": "تولیدپوشاک بچگانه وزنانه\nاما ورشکسته",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": true,
+                "v3": false
+            },
+            "created_at": 1755246086,
+            "watch_started_at": 1755646669,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 1755762251,
+                "v3": 1755819469
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "6794276030": {
+            "state": "await_phone",
+            "name": "پوریا سبحانی",
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755258542,
+            "watch_started_at": 0
+        },
+        "5539081038": {
+            "state": "await_phone",
+            "name": "مریم افشار",
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755260327,
+            "watch_started_at": 0
+        },
+        "2033935811": {
+            "state": "watch_v1",
+            "name": "زهرا اسدی",
+            "phone": "09055475501",
+            "job": "آنلاین شاپ",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755260362,
+            "watch_started_at": 1755260402
+        },
+        "434368260": {
+            "state": "watch_v1",
+            "name": "محبوبه مقدسی",
+            "phone": "09308832171",
+            "job": "ادیتور گرافیست",
+            "ai": "کمی",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755271069,
+            "watch_started_at": 1755271529
+        },
+        "6331450590": {
+            "state": "idle",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755276310,
+            "watch_started_at": 0
+        },
+        "2032417610": {
+            "state": "watch_v1",
+            "name": "غزل پروین",
+            "phone": "09039801680",
+            "job": "آموزشگاه خیاطی",
+            "ai": "حرفه‌ای",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755276350,
+            "watch_started_at": 1755276397
+        },
+        "6942339710": {
+            "state": "watch_v1",
+            "name": "آتنا بخشنده",
+            "phone": "09054203354",
+            "job": "لوازم خونگی",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755278566,
+            "watch_started_at": 1755278701
+        },
+        "1361902215": {
+            "state": "await_phone",
+            "name": "علی علیزاده",
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755279274,
+            "watch_started_at": 0
+        },
+        "5477966286": {
+            "state": "idle",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755280867,
+            "watch_started_at": 0
+        },
+        "358735521": {
+            "state": "idle",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755283665,
+            "watch_started_at": 0
+        },
+        "5973916142": {
+            "state": "watch_v2",
+            "name": "زهرا سرگلزایی",
+            "phone": "09036863393",
+            "job": "فعلا خونه دارم ولی میخوام هم ادمین بشم و هم در حوزه کارهای اداری فعالیت کنم",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755284506,
+            "watch_started_at": 1755338691,
+            "video_deadlines": {
+                "v1": 1755460185,
+                "v2": 1755511491,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            }
+        },
+        "8295848252": {
+            "state": "watch_v1",
+            "name": "فائزه نامور",
+            "phone": "09999415655",
+            "job": "خوبه",
+            "ai": "حرفه‌ای",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755285683,
+            "watch_started_at": 1755285860,
+            "video_deadlines": {
+                "v1": 1755458660,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": "حرفه‌ای",
+                "q1": "خوبه پرامپت خوبه",
+                "q2": "خوبه اینم",
+                "approved": true
+            }
+        },
+        "417681054": {
+            "state": "support_await_msg",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755287064,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            }
+        },
+        "7557757039": {
+            "state": "idle",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755293584,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            }
+        },
+        "72205433": {
+            "state": "idle",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755297524,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            }
+        },
+        "368408912": {
+            "state": "completed",
+            "name": "میثم داوودی",
+            "phone": "09334157817",
+            "job": "سوشال مدیا منیجر",
+            "ai": "حرفه‌ای",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755302808,
+            "watch_started_at": 1755303317,
+            "video_deadlines": {
+                "v1": 1755476117,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": "حرفه‌ای",
+                "q1": "پرامپت همون متن یا دستوریه که به یک مدل هوش مصنوعی میدی تا بر اساسش جواب تولید کنه.\nکاربردش اینه که به مدل میگی چی میخوای، مثلاً سؤال می‌پرسی، متن میدی، یا میگی چه کاری انجام بده.",
+                "q2": "قابلیت ایجنت در ChatGPT یعنی مدل می‌تواند خودش به ابزارها یا منابع بیرونی وصل شود، اطلاعات بگیرد یا کارهایی انجام دهد تا به جواب دقیق‌تر و عملی‌تر برسد.",
+                "approved": true
+            }
+        },
+        "6996581715": {
+            "state": "watch_v1",
+            "name": "حسین اصفهانی",
+            "phone": "09390049890",
+            "job": "تعمیرات لوازم خانگی",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755303290,
+            "watch_started_at": 1755303358,
+            "video_deadlines": {
+                "v1": 1755476158,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            }
+        },
+        "7807321680": {
+            "state": "watch_v1",
+            "name": "دنیا میر",
+            "phone": "09154901320",
+            "job": "میکاپ آرتیست",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755306298,
+            "watch_started_at": 1755306337,
+            "video_deadlines": {
+                "v1": 1755479137,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            }
+        },
+        "7438173248": {
+            "state": "idle",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755321015,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            }
+        },
+        "5712134842": {
+            "state": "watch_v1",
+            "name": "عباسعلی وحدانی",
+            "phone": "09396026352",
+            "job": "فروشگاه لوازم مژه",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755322327,
+            "watch_started_at": 1755322540,
+            "video_deadlines": {
+                "v1": 1755495340,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            }
+        },
+        "7210002789": {
+            "state": "watch_v1",
+            "name": "رضا قریکانلو",
+            "phone": "09914578696",
+            "job": "سوپرمارکت",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755323050,
+            "watch_started_at": 1755323476,
+            "video_deadlines": {
+                "v1": 1755496276,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            }
+        },
+        "501563557": {
+            "state": "await_ex_v1",
+            "name": "سامان وحدانی",
+            "phone": "09128155136",
+            "job": "پوشاک",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755326529,
+            "watch_started_at": 1755326617,
+            "video_deadlines": {
+                "v1": 1755499417,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            }
+        },
+        "6324421683": {
+            "state": "await_ai",
+            "name": "هادی بابایی",
+            "phone": "09309463312",
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755328033,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            }
+        },
+        "5049717797": {
+            "state": "watch_v2",
+            "name": "زهره پاکنیت",
+            "phone": "09016418053",
+            "job": "قراره ادمینی شروع کنم",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755334225,
+            "watch_started_at": 1755335695,
+            "video_deadlines": {
+                "v1": 1755507204,
+                "v2": 1755508495,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            }
+        },
+        "797423215": {
+            "state": "watch_v2",
+            "name": "سعید ناصری",
+            "phone": "09159105271",
+            "job": "لوازم خانگی",
+            "ai": "کمی",
+            "progress": {
+                "v1": true,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755339544,
+            "watch_started_at": 1755341553,
+            "video_deadlines": {
+                "v1": 1755512476,
+                "v2": 1755514353,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "7489713398": {
+            "state": "watch_v1",
+            "name": "انیسه غضنفری",
+            "phone": "09910732960",
+            "job": "هیچی",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755340407,
+            "watch_started_at": 1755340483,
+            "video_deadlines": {
+                "v1": 1755513283,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "146446008": {
+            "state": "watch_v1",
+            "name": "معصومه محمدی",
+            "phone": "09335844394",
+            "job": "آنلاین شاپ عطر و ادکل",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755341072,
+            "watch_started_at": 1755341167,
+            "video_deadlines": {
+                "v1": 1755513967,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "271513591": {
+            "state": "watch_v1",
+            "name": "حسن جهانی",
+            "phone": "09151879215",
+            "job": "کافه",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755345531,
+            "watch_started_at": 1756116428,
+            "video_deadlines": {
+                "v1": 1756289228,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "6863585786": {
+            "state": "completed",
+            "name": "مریم عاشق",
+            "phone": "09363451880",
+            "job": "اشپز",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": true,
+                "v3": true
+            },
+            "created_at": 1755347210,
+            "watch_started_at": 1755526596,
+            "video_deadlines": {
+                "v1": 1755588148,
+                "v2": 1755590855,
+                "v3": 1755699396
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "5943922145": {
+            "state": "watch_v1",
+            "name": "فاطمه حسن زاده",
+            "phone": "09157967930",
+            "job": "کاسب",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755351507,
+            "watch_started_at": 1755351573,
+            "video_deadlines": {
+                "v1": 1755524373,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 1757185866,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "5092688934": {
+            "state": "idle",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755361004,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "1126201617": {
+            "state": "idle",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755367298,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "5369763012": {
+            "state": "await_phone",
+            "name": "محمد محمدیان",
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755417977,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "204943382": {
+            "state": "idle",
+            "name": "محمد مهدی کریمی",
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755421123,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "5133937682": {
+            "state": "watch_v1",
+            "name": "علی اسکندریان",
+            "phone": "09151862138",
+            "job": "کانون تبلیغات\nطراحی و چاپ بیلبورد تبلیغاتی\nمحتوا سازی جهت فضای مجازی",
+            "ai": "کمی",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755426127,
+            "watch_started_at": 1755632939,
+            "video_deadlines": {
+                "v1": 1755805739,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "291230205": {
+            "state": "await_phone",
+            "name": "پروانه ستوده",
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755435281,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "7608769071": {
+            "state": "collect_name",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755450264,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "5483256607": {
+            "state": "collect_name",
+            "name": "حمید قربانی",
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755506169,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "34235714": {
+            "state": "completed",
+            "name": "کامیار محمدپور",
+            "phone": "09155843673",
+            "job": "کارمند بانک",
+            "ai": "کمی",
+            "progress": {
+                "v1": true,
+                "v2": true,
+                "v3": true
+            },
+            "created_at": 1755510917,
+            "watch_started_at": 1755758214,
+            "video_deadlines": {
+                "v1": 1755690359,
+                "v2": 1755691359,
+                "v3": 1755931014
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "6163984120": {
+            "state": "collect_name",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1755702418,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "6846293690": {
+            "state": "watch_v2",
+            "name": "فاطمه منفردی",
+            "phone": "09158863964",
+            "job": "میخوام کارکردن باهوش مصنوعی رو یاد بگیرم. بعد هم مستقل کار کنم هم در کار شوهرم که ام دی اف کار سیاره در این زمینه هم کمک کنم به موفقیت در کارش",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1756096926,
+            "watch_started_at": 1756278333,
+            "video_deadlines": {
+                "v1": 1756352482,
+                "v2": 1756451133,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "6040674572": {
+            "state": "watch_v2",
+            "name": "محمد شرافتی",
+            "phone": "09159888737",
+            "job": "کابینت",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1756445611,
+            "watch_started_at": 1756460484,
+            "video_deadlines": {
+                "v1": 1756621029,
+                "v2": 1756633284,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "136720687": {
+            "state": "watch_v2",
+            "name": "مجتبی پیروی",
+            "phone": "09307792772",
+            "job": "🧑‍🍳 آشپز کبابی",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1756672055,
+            "watch_started_at": 1756678795,
+            "video_deadlines": {
+                "v1": 1756845139,
+                "v2": 1756851595,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "107798826": {
+            "state": "await_phone",
+            "name": "سحرقلی زاده",
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1756927298,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "7351606105": {
+            "state": "idle",
+            "name": "مصطفی رسولی",
+            "phone": "09025094203",
+            "job": "وی پی ان",
+            "ai": "متوسط",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1756927887,
+            "watch_started_at": 1756927944,
+            "video_deadlines": {
+                "v1": 1757100744,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": "متوسط",
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "640561173": {
+            "state": "collect_name",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1756929682,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "6534085749": {
+            "state": "watch_v1",
+            "name": "طاهره علیزاده",
+            "phone": "09152612753",
+            "job": "مدیر کافه \/آموزشگاه",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1756931247,
+            "watch_started_at": 1756931288,
+            "video_deadlines": {
+                "v1": 1757104088,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "6634537001": {
+            "state": "watch_v2",
+            "name": "فاطمه درگاهی",
+            "phone": "09939366029",
+            "job": "چرم دوزم",
+            "ai": "صفر",
+            "progress": {
+                "v1": true,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1756937502,
+            "watch_started_at": 1756939395,
+            "video_deadlines": {
+                "v1": 1757110464,
+                "v2": 1757112195,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "2038217818": {
+            "state": "watch_v1",
+            "name": "جواد ذبیحی",
+            "phone": "09377490268",
+            "job": "راننده شرکت",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1756961173,
+            "watch_started_at": 1756961259,
+            "video_deadlines": {
+                "v1": 1757134059,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "6006629020": {
+            "state": "collect_name",
+            "name": null,
+            "phone": null,
+            "job": null,
+            "ai": "",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1756976050,
+            "watch_started_at": 0,
+            "video_deadlines": {
+                "v1": 0,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "5061542996": {
+            "state": "watch_v1",
+            "name": "نیما سلطانی",
+            "phone": "09926270090",
+            "job": "کافی نت",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1756981036,
+            "watch_started_at": 1756981088,
+            "video_deadlines": {
+                "v1": 1757153888,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        },
+        "1192710200": {
+            "state": "watch_v1",
+            "name": "امید جعفری",
+            "phone": "09924725629",
+            "job": "مدیریت",
+            "ai": "متوسط",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1756985394,
+            "watch_started_at": 1756985754,
+            "video_deadlines": {
+                "v1": 1757158554,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": "متوسط",
+                "q1": "متنی که‌ به‌ هوش مصنوعی می‌دهید\nکاربرد ٱن این است که هرچه قدر پرامپت شما کامل تر واضح تر و جامع تر باشد هوش مصنوعی نتیجه بهتری به شما خواهد داد",
+                "q2": "قابلیت مدیریت ابزار های هوش مصنوعی به شما می دهد",
+                "approved": true
+            },
+            "banned": false
+        },
+        "6612302209": {
+            "state": "watch_v1",
+            "name": "مریم قربانی",
+            "phone": "09966241461",
+            "job": "سالن زیبایی کراتینکار",
+            "ai": "صفر",
+            "progress": {
+                "v1": false,
+                "v2": false,
+                "v3": false
+            },
+            "created_at": 1756991334,
+            "watch_started_at": 1756991457,
+            "video_deadlines": {
+                "v1": 1757164257,
+                "v2": 0,
+                "v3": 0
+            },
+            "lock_until": 0,
+            "quiz": {
+                "lvl": null,
+                "q1": null,
+                "q2": null,
+                "approved": null
+            },
+            "banned": false
+        }
+    },
+    "pending_rejects": [],
+    "pending_support_replies": {
+        "7364798332": {
+            "user_id": 971575241
+        }
+    },
+    "pending_items": [],
+    "video_srcs": {
+        "v1": "BAACAgQAAyEFAASojBEyAAIBHWibeCqZsrsT9W6ZYc-hltQbfaqaAALJFwACwEvhUFELUszjxRA7NgQ",
+        "v2": "BAACAgQAAxkBAAICYWibj6oIwIZqeTOzdOFvXwjvAYeFAAI3GQAC1vPgUFM9ZkKSBryfNgQ",
+        "v3": "BAACAgQAAxkBAAICgGiblpGv4mY4v7vbRLaqRkqH1BnIAAJDGQAC1vPgUIb9eIAzTYk2NgQ"
+    },
+    "await_set_video": {
+        "971575241": "v1"
+    },
+    "support_open": [],
+    "admin_ids": [
+        971575241,
+        7364798332
+    ],
+    "pending_broadcast": [],
+    "pending_admin_inputs": {
+        "971575241": {
+            "mode": "toolkit_edit_1_text",
+            "index": 5
+        }
+    },
+    "vip_card": {
+        "file_id": "AgACAgQAAxkBAAIK2mi3hnY2_1CWKEc8dGImfRSp7IJ0AAIV0TEb_v_AUYbNlA-fwYo9AQADAgADeAADNgQ"
+    },
+    "await_set_vip_card": [],
+    "subscriptions": [],
+    "start_media": {
+        "file_id": "CgACAgQAAyEFAASojBEyAAIC02i380bpg6zEdRaOo8eJZzA6qfNbAALdGQACT2PAUVsL2D7LX-IDNgQ",
+        "type": "animation"
+    },
+    "await_set_start_media": [],
+    "toolkit_buttons": [
+        {
+            "text": "📲 Gemini برای Android",
+            "type": "url",
+            "value": "https:\/\/play.google.com\/store\/apps\/details?id=com.google.android.apps.bard"
+        },
+        {
+            "text": "📲 Gemini برای iOS",
+            "type": "url",
+            "value": "https:\/\/apps.apple.com\/app\/gemini-google-ai\/id6477494283"
+        },
+        {
+            "text": "📲 ChatGPT برای iOS",
+            "type": "url",
+            "value": "https:\/\/apps.apple.com\/app\/openai-chatgpt\/id6448311069"
+        },
+        {
+            "text": "📲 ChatGPT برای Android",
+            "type": "url",
+            "value": "https:\/\/play.google.com\/store\/apps\/details?id=com.openai.chatgpt"
+        },
+        {
+            "text": "🌐 نسخه وب ChatGPT",
+            "type": "url",
+            "value": "https:\/\/chat.openai.com\/"
+        },
+        {
+            "text": "🛡️ اکانت VPN یک‌ساله ExpressVPN",
+            "type": "callback",
+            "value": "toolkit_vpn"
+        }
+    ]
+}
